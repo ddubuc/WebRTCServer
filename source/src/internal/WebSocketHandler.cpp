@@ -15,7 +15,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnConnectHand
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections)
 {
-	auto& func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
 	{
 		LOG(INFO) << "on_close ";
 		auto& connection = connections[hdl.lock().get()];
@@ -35,7 +35,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderH
 
 		// create and set peer connection.
 		auto callback = new PeerConnectionCallback();
-		connections[hdl.lock().get()] = std::make_unique<ConnectionData>(
+		connections[hdl.lock().get()] = ::make_unique<ConnectionData>(
 			CreatePeerConnection(callback),
 			callback,
 			hdl
@@ -130,13 +130,13 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderH
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceiverHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & stack)
 {
-	auto& func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
 	{
 		LOG(INFO) << "on_open ";
 
 		// create and set peer connection.
 		auto callback = new PeerConnectionCallback();
-		connections[hdl.lock().get()] = std::make_unique<ConnectionData>(
+		connections[hdl.lock().get()] = ::make_unique<ConnectionData>(
 			CreatePeerConnection(callback),
 			callback,
 			hdl

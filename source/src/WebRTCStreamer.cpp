@@ -97,7 +97,7 @@ int WebRTCStreamer::startWebRTCServer()
 				OnCloseHandler(connections),
 				// on message
 				OnMessageSenderHandler(connections,
-				                       std::bind(&SendVideo, peer_connection_factory, l_stack, std::tr1::placeholders::_1))
+				                       std::bind(&SendVideo, peer_connection_factory, l_stack, std::placeholders::_1))
 
 			, base_cert.str());
 

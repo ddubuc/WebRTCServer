@@ -66,7 +66,7 @@ foreach(COMPONENT  ${COMPONENTS})
     endif(WIN32)
 
     if(UNIX)
-      set(yuv_${UPPERCOMPONENT}_LIBRARY_RELEASE "${lib_path}/Release/lib${COMPONENT}${EXTENSION}")
+      set(yuv_${UPPERCOMPONENT}_LIBRARY_RELEASE "${lib_path}/lib${COMPONENT}${EXTENSION}")
       set(yuv_${UPPERCOMPONENT}_LIBRARY_DEBUG   "${lib_path}/Debug/lib${COMPONENT}${EXTENSION}")
     endif(UNIX)
 

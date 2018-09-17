@@ -3,6 +3,9 @@ cmake_minimum_required (VERSION 3.7.1)
 project (WebRTCServer)
 
 option(HIPE_EXTERNAL_OPENCV "Use OpenCV libraries in Hipe External." ON)
+option(HIPE_EXTERNAL_BOOST "Use Boost libraries in Hipe External." ON)
+option(HIPE_EXTERNAL_LIBYUV "Use libyuv libraries in Hipe External." ON)
+
 message(STATUS "HIPE_EXTERNAL_OPENCV: ${HIPE_EXTERNAL_OPENCV}")
 
 # These settings are only required at the globel scope but they are collected
@@ -103,9 +106,6 @@ if(WIN32)
 	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}/WebRTC" CACHE PATH "WebRTC Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DIR}")
 
-	set(WebSocketpp_DIR "${HIPE_EXTERNAL_DIR}/WebSocketpp" CACHE PATH "WebRTC Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DIR}")
-
 	set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/json" CACHE PATH "Websocketpp Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
 
@@ -126,16 +126,19 @@ else()
 
 
 	if(HIPE_EXTERNAL_LIBYUV)
-		set(Libyuv_DIR "${HIPE_EXTERNAL_DIR}/libyuv" CACHE PATH "Libyuv Directory" FORCE)
+		set(Libyuv_DIR "${HIPE_EXTERNAL_DIR}" CACHE PATH "Libyuv Directory" FORCE)
 		list(APPEND CMAKE_PREFIX_PATH "${Libyuv_DIR}")
 	endif()
 
-	list(APPEND CMAKE_PREFIX_PATH "${HIPE_EXTERNAL_DIR}/webrtc")
+	list(APPEND CMAKE_PREFIX_PATH "${HIPE_EXTERNAL_DIR}/")
 
-	set(Websocketpp_DIR "${HIPE_EXTERNAL_DIR}/websocketpp" CACHE PATH "Websocketpp Directory" FORCE)
+	set(Websocketpp_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "Websocketpp Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${Websocketpp_DIR}")
 
-	set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/json" CACHE PATH "JsonPP Directory" FORCE)
+	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}" CACHE PATH "WebRTC Directory" FORCE)
+	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DI}")
+	
+	set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "JsonPP Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
 
 	set(BoringSSL_DIR "${HIPE_EXTERNAL_DIR}/boringssl-webRTC" CACHE PATH "BOringSSL Directory" FORCE)
@@ -199,6 +202,9 @@ set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target/include)
 if(WIN32)
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	add_compile_options(/wd4820 /wd4668 /wd4619 /wd4626 /wd5031 /wd4365 /wd4710 /wd4514 /wd4503)
+  else()
+	add_compile_options(-fPIC)
+
 endif()
 
 
@@ -206,7 +212,13 @@ endif()
 
 add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" SHARED)
 
-target_compile_definitions(WebRTCServer PRIVATE -DWEBRTCSERVER_BUILD -DNOMINMAX -DWEBRTC_WIN)
+if (WIN32)
+  target_compile_definitions(WebRTCServer PRIVATE -DNOMINMAX -DWEBRTC_WIN)
+else()
+  target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX)
+endif()
+
+target_compile_definitions(WebRTCServer PRIVATE -DWEBRTCSERVER_BUILD)
 
 include_directories(WebRTCServer ${WEBRTC_INCLUDE_DIRS} )
 target_include_directories(WebRTCServer PRIVATE ${WEBRTC_INCLUDE_DIRS})
@@ -217,7 +229,11 @@ target_include_directories(WebRTCServer PRIVATE ${BoringSSL_DIR})
 target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
 
 target_link_libraries(WebRTCServer webrtc)
-target_link_libraries(WebRTCServer jsoncpp_lib_static)
+if (WIN32)
+  target_link_libraries(WebRTCServer jsoncpp_lib)
+else()
+  target_link_libraries(WebRTCServer jsoncpp_lib_static)
+endif()
 
 target_link_libraries(WebRTCServer ${Libyuv_LIBRARIES})
 target_link_libraries(WebRTCServer ${OpenCV_LIBS})

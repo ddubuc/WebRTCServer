@@ -59,7 +59,7 @@ int WebRTCCapturer::startWebRTCServer()
 				OnCloseHandler(connections),
 				// on message
 				OnMessageSenderHandler(connections,
-					std::bind([&]()
+									   std::bind([&]()
 			{
 			})),
 

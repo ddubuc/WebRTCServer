@@ -11,13 +11,19 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderH
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceiverHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections,
                                                                                                 std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & stack);
-
+#ifdef WIN32																											  
 template<class _Fx,
 	class... _Types>
 inline std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>> & connections,
 	std::_Binder<std::_Unforced, _Fx, _Types...> bindOnAir)
+#else
+template<typename _Fx,
+	typename... _Types>
+inline std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>> & connections,
+    std::_Bind<_Fx(_Types...)> bindOnAir)
+#endif	
 {
-	auto & func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
+	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
 	{
 		LOG(INFO) << "on_message called with hdl: " << hdl.lock().get()
 			<< " and message: " << msg->get_payload()
