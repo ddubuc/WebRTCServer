@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2360BC50-FA31-48FE-ACAF-AD066950A796}</ProjectGuid>
+    <RootNamespace>executable</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\opencv-3.4\include;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\opencv-3.4\x64\vc14\lib\opencv_core340d.lib;C:\workspace\ANEO\Project\hipe-group\WebRTCServer\build\target\bin\Debug\WebRTCServerd.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_system-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_thread-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_filesystem-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_regex-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_chrono-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_date_time-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_atomic-vc140-mt-1_62.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\opencv-3.4\include;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\opencv-3.4\x64\vc14\lib\opencv_core340.lib;C:\workspace\ANEO\Project\hipe-group\WebRTCServer\build\target\bin\Release\WebRTCServer.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_system-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_thread-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_filesystem-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_regex-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_chrono-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_date_time-vc140-mt-1_62.lib;C:\workspace\ANEO\Project\hipe-group\hipe-master\3rdParty\HipeExternal\win64\boost_1_62_0\lib64-msvc-14.0\libboost_atomic-vc140-mt-1_62.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\webrtc-poc\executable\main.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
