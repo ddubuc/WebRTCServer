@@ -67,7 +67,7 @@ foreach(COMPONENT  ${COMPONENTS})
 
     if(UNIX)
       set(yuv_${UPPERCOMPONENT}_LIBRARY_RELEASE "${lib_path}/lib${COMPONENT}${EXTENSION}")
-      set(yuv_${UPPERCOMPONENT}_LIBRARY_DEBUG   "${lib_path}/Debug/lib${COMPONENT}${EXTENSION}")
+      set(yuv_${UPPERCOMPONENT}_LIBRARY_DEBUG   "${lib_path}/lib${COMPONENT}${EXTENSION}")
     endif(UNIX)
 
     _yuv_ADJUST_LIB_VARS(${UPPERCOMPONENT})

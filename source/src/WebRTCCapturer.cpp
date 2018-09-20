@@ -7,7 +7,7 @@
 
 
 
-WebRTCCapturer::WebRTCCapturer(int i_port, const char *&workdir) : port(i_port)
+WebRTCCapturer::WebRTCCapturer(int i_port, const char *workdir) : port(i_port)
 {
 	working_dir = strdup(workdir);
 	stack = std::make_shared < core::queue::ConcurrentQueue<cv::Mat> >();
@@ -19,6 +19,10 @@ WebRTCCapturer::~WebRTCCapturer()
 	stopWebRTCServer();
 	free(working_dir);
 	working_dir = nullptr;
+}
+
+void emptyCall(std::shared_ptr<ConnectionData> e)
+{
 }
 
 int WebRTCCapturer::startWebRTCServer()
@@ -51,19 +55,16 @@ int WebRTCCapturer::startWebRTCServer()
 #endif /* WIN32 */
 			}
 			base_cert << "mylaptop";
-
+			std::shared_ptr<ConnectionData> empty;
+			std::function<void(std::shared_ptr<ConnectionData>)> func = &emptyCall;
 			_ws = ServerInit(
 				// on http = on connection
 				OnConnectHandler(),
 				OnOpenReceiverHandler(connections, l_stack),
 				OnCloseHandler(connections),
 				// on message
-				OnMessageSenderHandler(connections,
-									   std::bind([&]()
-			{
-			})),
-
-			base_cert.str());
+				OnMessageReceiverHandler(connections),
+				base_cert.str());
 			ws = _ws;
 
 			// Listen on port 9001

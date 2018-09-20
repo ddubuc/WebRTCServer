@@ -24,30 +24,6 @@ std::string GetCurrentWorkingDir(void) {
 	return current_working_dir;
 }
 
-void SendVideo(rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory,
-               std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & stack,
-               std::shared_ptr<ConnectionData> connection)
-{
-	auto& peer_connection = connection->pc;
-	
-	//std::unique_ptr<CustomOpenCVCapturer> capturer());
-	rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> videoSource = peer_connection_factory->CreateVideoSource(new CustomOpenCVCapturer(connection->session, stack));
-	rtc::scoped_refptr<webrtc::VideoTrackInterface> video_track = peer_connection_factory->CreateVideoTrack("videoSEND_label", videoSource);
-	rtc::scoped_refptr<webrtc::MediaStreamInterface> new_stream = peer_connection_factory->CreateLocalMediaStream("streamSEND_label");
-
-	//for (auto &track : stream->GetAudioTracks()) { new_stream->AddTrack(track); }
-	
-	new_stream->AddTrack(video_track);
-	if (!peer_connection->AddStream(new_stream))
-	{
-		LOG(LS_ERROR) << "Adding stream to PeerConnection failed";
-	}
-	connection->new_stream = new_stream;
-	connection->video_track = video_track;
-	connection->videoSource = videoSource;
-}
-
-
 WebRTCStreamer::WebRTCStreamer(int i_port, const char * & work_dir) : port(i_port)
 {
 	working_dir = strdup(work_dir);
@@ -60,6 +36,8 @@ WebRTCStreamer::WebRTCStreamer(int i_port, const char * & work_dir) : port(i_por
 		core::queue::ConcurrentQueue<cv::Mat> * l_stack = static_cast<core::queue::ConcurrentQueue<cv::Mat> *>(ptr);
 		delete l_stack;
 	});
+
+	
 }
 
 int WebRTCStreamer::startWebRTCServer()
@@ -71,13 +49,12 @@ int WebRTCStreamer::startWebRTCServer()
 		// mapping between socket connection and peer connection.
 		std::unordered_map<void*, std::shared_ptr<ConnectionData>> connections;
 		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> l_stack;
-		l_stack.reset(static_cast<core::queue::ConcurrentQueue<cv::Mat> *>(stack.get()), [] (core::queue::ConcurrentQueue<cv::Mat> *) {});
-		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory
-			= webrtc::CreatePeerConnectionFactory();
 
 		WebsocketServer* _ws = static_cast<WebsocketServer *>(ws);
 		{
 			std::lock_guard<std::mutex> lock(safe_quard);
+			l_stack.reset(static_cast<core::queue::ConcurrentQueue<cv::Mat> *>(stack.get()), [] (core::queue::ConcurrentQueue<cv::Mat> *) {});
+
 			std::stringstream base_cert;
 			base_cert << this->working_dir;
 			if (!base_cert.str().empty())
@@ -89,7 +66,6 @@ int WebRTCStreamer::startWebRTCServer()
 #endif /* WIN32 */
 			}
 			base_cert << "mylaptop";
-
 			_ws = ServerInit(// on http = on connection
 				OnConnectHandler(),
 				OnOpenSenderHandler(connections),
@@ -97,10 +73,9 @@ int WebRTCStreamer::startWebRTCServer()
 				OnCloseHandler(connections),
 				// on message
 				OnMessageSenderHandler(connections,
-				                       std::bind(&SendVideo, peer_connection_factory, l_stack, std::placeholders::_1))
+									   l_stack)
 
 			, base_cert.str());
-
 			ws = _ws;
 
 
@@ -117,13 +92,13 @@ int WebRTCStreamer::startWebRTCServer()
 			std::lock_guard<std::mutex> lock(safe_quard);
 			std::error_code er;
 			_ws->stop_listening(er);
-
-		
-			connections.clear();
-
 			delete _ws;
 			_ws = nullptr;
 			ws = nullptr;
+			
+			connections.clear();
+
+		
 		}
 	});
 

@@ -11,9 +11,8 @@
 
 using std::endl;
 
-CustomOpenCVCapturer::CustomOpenCVCapturer(const Session& s, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack)
+CustomOpenCVCapturer::CustomOpenCVCapturer(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack)
 	  : now_rendering(false)
-	  , session(s)
 	  , start()
 	  , end(std::chrono::system_clock::now())
 	  , frame_timer(std::chrono::system_clock::now()), frame_counter(0)
@@ -24,7 +23,12 @@ CustomOpenCVCapturer::CustomOpenCVCapturer(const Session& s, std::shared_ptr<cor
 
 CustomOpenCVCapturer::~CustomOpenCVCapturer()
 {
-	std::cout << "CustomeOpenCVCapturer is removing" << std::endl;
+
+	LOG(INFO) << "CustomeOpenCVCapturer is stopping capture" << std::endl;
+	Stop();
+	
+	LOG(INFO) << "CustomeOpenCVCapturer is removing" << std::endl;
+	
 }
 
 void CustomOpenCVCapturer::PushFrame()

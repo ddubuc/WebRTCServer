@@ -15,7 +15,7 @@ message(STATUS "HIPE_EXTERNAL_OPENCV: ${HIPE_EXTERNAL_OPENCV}")
 
 if (UNIX)
 	include_directories("${CMAKE_SOURCE_DIR}/header" "/usr/include" "/usr/local/include")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unknown-pragmas")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas")
 else(WIN32)
 	include_directories("${CMAKE_SOURCE_DIR}/header")
 endif()
@@ -141,7 +141,7 @@ else()
 	set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "JsonPP Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
 
-	set(BoringSSL_DIR "${HIPE_EXTERNAL_DIR}/boringssl-webRTC" CACHE PATH "BOringSSL Directory" FORCE)
+	set(BoringSSL_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "BOringSSL Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${BoringSSL_DIR}")
 
 endif()
@@ -191,6 +191,12 @@ find_package(jsoncpp
 	PATHS "${JsonPP_DIR}/lib/cmake/jsoncpp"
 NO_DEFAULT_PATH)
 
+if(UNIX)
+  find_package(BoringSSL
+	REQUIRED
+	PATHS "${BoringSSL_DIR}/lib/cmake/"
+	NO_DEFAULT_PATH)
+endif(UNIX)
 
 #controls where to build the executables after "make"
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
@@ -203,19 +209,17 @@ if(WIN32)
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	add_compile_options(/wd4820 /wd4668 /wd4619 /wd4626 /wd5031 /wd4365 /wd4710 /wd4514 /wd4503)
   else()
-	add_compile_options(-fPIC)
+	add_compile_options(-fPIC -fno-rtti -std=gnu++0x)
 
 endif()
-
-
-
 
 add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" SHARED)
 
 if (WIN32)
   target_compile_definitions(WebRTCServer PRIVATE -DNOMINMAX -DWEBRTC_WIN)
 else()
-  target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX)
+#  target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX -D_GLIBCXX_USE_CXX11_ABI=0 -std=gnu++0x -fno-rtti)
+  target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX -D_GLIBCXX_USE_CXX11_ABI=0) # -fno-rtti)
 endif()
 
 target_compile_definitions(WebRTCServer PRIVATE -DWEBRTCSERVER_BUILD)
@@ -228,7 +232,13 @@ target_include_directories(WebRTCServer PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(WebRTCServer PRIVATE ${BoringSSL_DIR})
 target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
 
-target_link_libraries(WebRTCServer webrtc)
+if (UNIX)
+  #target_link_libraries(WebRTCServer ssl crypto)
+  include(${LIBWEBRTC_USE_FILE})
+  target_link_libraries(WebRTCServer ${LIBWEBRTC_LIBRARIES})
+else()
+  target_link_libraries(WebRTCServer webrtc)
+endif()  
 if (WIN32)
   target_link_libraries(WebRTCServer jsoncpp_lib)
 else()

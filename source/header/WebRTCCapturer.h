@@ -18,7 +18,7 @@ protected:
 	char * working_dir;
 
 public:
-	WebRTCCapturer(int i_port, const char * &work_dir);
+	WebRTCCapturer(int i_port, const char * work_dir);
 	~WebRTCCapturer();
 
 	int startWebRTCServer();

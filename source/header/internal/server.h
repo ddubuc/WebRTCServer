@@ -1,6 +1,9 @@
 #pragma once
 
+#ifdef BOOST_PP_VARIADICS
+#undef BOOST_PP_VARIADICS
 #define BOOST_PP_VARIADICS 0
+#endif
 
 #include "websocketpp/config/asio.hpp"
 #include "websocketpp/server.hpp"

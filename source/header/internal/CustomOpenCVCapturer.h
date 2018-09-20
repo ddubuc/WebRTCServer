@@ -11,7 +11,7 @@ class CustomOpenCVCapturer :
         public cricket::VideoCapturer
 {
 public:
-    explicit CustomOpenCVCapturer(const Session& session, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack);
+    explicit CustomOpenCVCapturer(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack);
     virtual ~CustomOpenCVCapturer();
  
     // cricket::VideoCapturer implementation.
@@ -28,8 +28,6 @@ private:
 	std::unique_ptr<std::thread> renderer_task;
 
     std::atomic<bool> now_rendering;
-
-    const Session& session;
 
     std::chrono::system_clock::time_point start;
     std::chrono::system_clock::time_point end;

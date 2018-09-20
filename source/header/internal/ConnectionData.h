@@ -13,7 +13,8 @@ struct ConnectionData
 	rtc::scoped_refptr<webrtc::PeerConnectionInterface> pc;
 	rtc::scoped_refptr<webrtc::MediaStreamInterface> new_stream;
 	rtc::scoped_refptr<webrtc::VideoTrackInterface> video_track;
-	rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> videoSource;
+	// rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> videoSource;
+	// rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory;
 
 	Session session;
 
@@ -29,14 +30,16 @@ struct ConnectionData
 	{
 		// do not change the order.!
 		
-
+		pc->Close();
+		boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 		if (new_stream && video_track)
 		{
 			new_stream->RemoveTrack(video_track);
 			
 			pc->RemoveStream(new_stream);
 		}
-		pc->Close();
+		boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+
 		renderer.reset();
 		pc = nullptr;
 		// Do not change the order.

@@ -14,6 +14,7 @@ protected:
 	std::shared_ptr<void> stack;
 	void* ws;
 	char * working_dir;
+	void *_contextWebRTC;
 
 public:
 	WebRTCStreamer(int i_port, const char * & work_dir);
