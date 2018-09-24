@@ -5,11 +5,10 @@
 #include "internal/CustomOpenCVCapturer.h"
 #include "internal/ConcurrentQueue.h"
 
-inline void SendVideo(std::shared_ptr<ConnectionData> connection, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat> > stack)
+inline void SendVideo(std::shared_ptr<ConnectionData> connection, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat> > stack, rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory)
 {
 	auto& peer_connection = connection->pc;
 
-	rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory = webrtc::CreatePeerConnectionFactory();
 	std::unique_ptr<CustomOpenCVCapturer> capturer = ::make_unique<CustomOpenCVCapturer>(stack);
 	rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> videoSource = peer_connection_factory->CreateVideoSource(std::move(capturer), nullptr);
 	rtc::scoped_refptr<webrtc::VideoTrackInterface> video_track = peer_connection_factory->CreateVideoTrack("videoSEND_label", videoSource);
@@ -22,8 +21,8 @@ inline void SendVideo(std::shared_ptr<ConnectionData> connection, std::shared_pt
 	{
 		LOG(LS_ERROR) << "Adding stream to PeerConnection failed";
 	}
-	connection->new_stream = new_stream;
-	connection->video_track = video_track;
+	// connection->new_stream = new_stream;
+	// connection->video_track = video_track;
 	//connection->videoSource = videoSource;
 }
 
@@ -32,7 +31,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnConnectHand
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections);
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections);
+std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections, rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory);
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceiverHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections,
                                                                                                 std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & stack);
@@ -91,7 +90,7 @@ inline std::function<void(WebsocketServer*, websocketpp::connection_hdl, message
 				LOG(INFO) << " create answer callback start.";
 				peer_connection->SetLocalDescription(DummySetSessionDescriptionObserver::Create(), desc);
 
-				//std::string sdp;
+				std::string sdp;
 				desc->ToString(&sdp);
 
 				Json::StreamWriterBuilder writer;
@@ -211,7 +210,7 @@ inline std::function<void(WebsocketServer*, websocketpp::connection_hdl, message
 	return func;
 }
 
-inline std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>> & connections, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> i_stack)
+inline std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>> & connections, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> i_stack, 				rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory)
 {
 	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
 	{
@@ -375,8 +374,7 @@ inline std::function<void(WebsocketServer*, websocketpp::connection_hdl, message
 			connection->session.mode.onAir = request["mode"]["onAir"].asBool();
 			if (connection->session.mode.onAir)
 			{
-				
-				SendVideo(connection, i_stack);
+				SendVideo(connection, i_stack, peer_connection_factory);
 			}
 			connection->session.mode.isKaicho = request["mode"]["isKaicho"].asBool();
 			connection->session.mode.useEye = request["mode"]["useEye"].asBool();

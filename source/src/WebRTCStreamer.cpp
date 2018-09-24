@@ -49,6 +49,7 @@ int WebRTCStreamer::startWebRTCServer()
 		// mapping between socket connection and peer connection.
 		std::unordered_map<void*, std::shared_ptr<ConnectionData>> connections;
 		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> l_stack;
+		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory = webrtc::CreatePeerConnectionFactory();
 
 		WebsocketServer* _ws = static_cast<WebsocketServer *>(ws);
 		{
@@ -68,12 +69,12 @@ int WebRTCStreamer::startWebRTCServer()
 			base_cert << "mylaptop";
 			_ws = ServerInit(// on http = on connection
 				OnConnectHandler(),
-				OnOpenSenderHandler(connections),
+				OnOpenSenderHandler(connections, peer_connection_factory),
 				//on_close
 				OnCloseHandler(connections),
 				// on message
 				OnMessageSenderHandler(connections,
-									   l_stack)
+									   l_stack, peer_connection_factory)
 
 			, base_cert.str());
 			ws = _ws;

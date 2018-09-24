@@ -11,7 +11,7 @@ class CustomOpenCVCapturer :
         public cricket::VideoCapturer
 {
 public:
-    explicit CustomOpenCVCapturer(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack);
+    CustomOpenCVCapturer(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack);
     virtual ~CustomOpenCVCapturer();
  
     // cricket::VideoCapturer implementation.

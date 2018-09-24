@@ -108,7 +108,7 @@ WebsocketServer* ServerInit(std::function<void(WebsocketServer*, websocketpp::co
   websocket_server->set_http_handler(bind(con_callback,websocket_server,::_1));
   websocket_server->set_open_handler(bind(open_callback,websocket_server,::_1));
   websocket_server->set_close_handler(bind(cls_callback,websocket_server,::_1));
-  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_INTERMEDIATE,::_1));
+//  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_INTERMEDIATE,::_1));
   websocket_server->set_reuse_addr(true);
 
   

@@ -175,7 +175,7 @@ include("${CMAKE_SOURCE_DIR}/cmake/common_functions_and_macros.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/boost_config.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/webrtc_config.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/opencv_config.cmake")
-include("${CMAKE_SOURCE_DIR}/cmake/libyuv_config.cmake")
+#include("${CMAKE_SOURCE_DIR}/cmake/libyuv_config.cmake")
 
 message(STATUS "Get WebRTC from ${WEBRTC_ROOT}")
 
@@ -206,11 +206,10 @@ set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target/include)
 
 #Add some multithreaded build support =====================================================================================================
 if(WIN32)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-	add_compile_options(/wd4820 /wd4668 /wd4619 /wd4626 /wd5031 /wd4365 /wd4710 /wd4514 /wd4503)
-  else()
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  add_compile_options(/wd4820 /wd4668 /wd4619 /wd4626 /wd5031 /wd4365 /wd4710 /wd4514 /wd4503)
+else()
 	add_compile_options(-fPIC -fno-rtti -std=gnu++0x)
-
 endif()
 
 add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" SHARED)
@@ -218,46 +217,41 @@ add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" SHARED)
 if (WIN32)
   target_compile_definitions(WebRTCServer PRIVATE -DNOMINMAX -DWEBRTC_WIN)
 else()
-#  target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX -D_GLIBCXX_USE_CXX11_ABI=0 -std=gnu++0x -fno-rtti)
   target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX -D_GLIBCXX_USE_CXX11_ABI=0) # -fno-rtti)
 endif()
 
 target_compile_definitions(WebRTCServer PRIVATE -DWEBRTCSERVER_BUILD)
 
 include_directories(WebRTCServer ${WEBRTC_INCLUDE_DIRS} )
+
+#target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
+#target_link_libraries(WebRTCServer ${Libyuv_LIBRARIES})
+target_include_directories(WebRTCServer PRIVATE ${BoringSSL_DIR})
+
+if (WIN32)
+  target_link_libraries(WebRTCServer jsoncpp_lib)
+  target_link_libraries(WebRTCServer webrtc)
+  message(STATUS "Test if it works with windows")
+  target_link_libraries(WebRTCServer ws2_32 wsock32 winmm dmoguids Secur32 msdmo wmcodecdspuuid amstrmid crypt32 iphlpapi secur32 Strmiids)
+  
+endif()
+
+
+if (UNIX)
+  include(${LIBWEBRTC_USE_FILE})
+  target_link_libraries(WebRTCServer -Wl,--whole-archive ${LIBWEBRTC_LIBRARIES} -Wl,--no-whole-archive )
+  target_link_libraries(WebRTCServer jsoncpp_lib_static)
+
+endif()  
+
 target_include_directories(WebRTCServer PRIVATE ${WEBRTC_INCLUDE_DIRS})
 target_include_directories(WebRTCServer PRIVATE ${HIPE_EXTERNAL_DIR})
 target_include_directories(WebRTCServer PRIVATE ${Boost_INCLUDE_DIRS})
-
-target_include_directories(WebRTCServer PRIVATE ${BoringSSL_DIR})
-target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
-
-if (UNIX)
-  #target_link_libraries(WebRTCServer ssl crypto)
-  include(${LIBWEBRTC_USE_FILE})
-  target_link_libraries(WebRTCServer ${LIBWEBRTC_LIBRARIES})
-else()
-  target_link_libraries(WebRTCServer webrtc)
-endif()  
-if (WIN32)
-  target_link_libraries(WebRTCServer jsoncpp_lib)
-else()
-  target_link_libraries(WebRTCServer jsoncpp_lib_static)
-endif()
-
-target_link_libraries(WebRTCServer ${Libyuv_LIBRARIES})
 target_link_libraries(WebRTCServer ${OpenCV_LIBS})
 target_link_libraries(WebRTCServer ${Boost_LIBRARIES})
 target_link_libraries(WebRTCServer ${CMAKE_THREAD_LIBS_INIT})
 
-
-
-if(WIN32) 
-	message(STATUS "Test if it works with windows")
-		target_link_libraries(WebRTCServer ws2_32 wsock32 winmm dmoguids Secur32 msdmo wmcodecdspuuid amstrmid crypt32 iphlpapi secur32 Strmiids)
-
-	endif(WIN32)
-	SET_TARGET_PROPERTIES( WebRTCServer PROPERTIES OUTPUT_NAME WebRTCServer
+SET_TARGET_PROPERTIES( WebRTCServer PROPERTIES OUTPUT_NAME WebRTCServer
 	DEBUG_OUTPUT_NAME WebRTCServerd )
 	#install_header_to_target(WebRTCServer)
 	message(STATUS "Include build folder : ${CMAKE_CURRENT_SOURCE_DIR}/source/header/")

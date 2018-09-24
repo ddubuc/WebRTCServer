@@ -12,7 +12,7 @@
 using std::endl;
 
 CustomOpenCVCapturer::CustomOpenCVCapturer(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack)
-	  : now_rendering(false)
+	: VideoCapturer(), now_rendering(false)
 	  , start()
 	  , end(std::chrono::system_clock::now())
 	  , frame_timer(std::chrono::system_clock::now()), frame_counter(0)

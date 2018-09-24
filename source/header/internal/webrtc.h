@@ -124,10 +124,10 @@ class CreateSDPCallback : public webrtc::CreateSessionDescriptionObserver {
 		}
 };
 
-inline rtc::scoped_refptr<webrtc::PeerConnectionInterface> CreatePeerConnection(webrtc::PeerConnectionObserver* observer) {
-	rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory
-    = webrtc::CreatePeerConnectionFactory();
-	if (!peer_connection_factory.get()) {
+inline rtc::scoped_refptr<webrtc::PeerConnectionInterface> CreatePeerConnection(rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory, webrtc::PeerConnectionObserver* observer)
+{
+	if (!peer_connection_factory.get())
+	{
 		LOG(LERROR) << "Failed to initialize PeerConnectionFactory" << std::endl;
 	  return nullptr;
 	}
@@ -157,6 +157,18 @@ inline rtc::scoped_refptr<webrtc::PeerConnectionInterface> CreatePeerConnection(
 
   return peer_connection_factory->CreatePeerConnection(
       config, &constraints, NULL, NULL, observer);
+}
+
+
+
+inline rtc::scoped_refptr<webrtc::PeerConnectionInterface> CreatePeerConnection(webrtc::PeerConnectionObserver* observer) {
+	rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory
+    = webrtc::CreatePeerConnectionFactory();
+
+	std::cerr << "This function is deprecated" << std::endl;
+	
+	return CreatePeerConnection(peer_connection_factory, observer);
+	
 }
 
 inline void ProcessMessage() {

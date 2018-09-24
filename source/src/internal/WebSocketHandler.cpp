@@ -18,7 +18,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseHandle
 	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
 	{
 		LOG(INFO) << "on_close ";
-		auto& connection = connections[hdl.lock().get()];
+		auto connection = connections[hdl.lock().get()];
 		connection->pc->Close();
 		
 		connections.erase(hdl.lock().get());
@@ -27,7 +27,8 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseHandle
 	return func;
 }
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections)
+std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderHandler(std::unordered_map<void*, std::shared_ptr<ConnectionData>>& connections,
+																					   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory)
 {
 	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
 	{
@@ -35,8 +36,9 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderH
 
 		// create and set peer connection.
 		auto callback = new PeerConnectionCallback();
+		rtc::scoped_refptr<webrtc::PeerConnectionInterface> pc = CreatePeerConnection(peer_connection_factory, callback);
 		connections[hdl.lock().get()] = ::make_unique<ConnectionData>(
-			CreatePeerConnection(callback),
+			pc,
 			callback,
 			hdl
 		);
@@ -84,42 +86,42 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderH
 
 			peer_connection->CreateOffer(new rtc::RefCountedObject<CreateSDPCallback>(
 				                             [&](webrtc::SessionDescriptionInterface* desc)
-			                             {
-				                             LOG(INFO) << " create offer callback start.";
-				                             peer_connection->SetLocalDescription(DummySetSessionDescriptionObserver::Create(), desc);
+											 {
+												 LOG(INFO) << " create offer callback start.";
+												 peer_connection->SetLocalDescription(DummySetSessionDescriptionObserver::Create(), desc);
 
-				                             // send SDP. trickle ICE.
-				                             std::string sdp;
-				                             desc->ToString(&sdp);
+												 // send SDP. trickle ICE.
+												 std::string sdp;
+												 desc->ToString(&sdp);
 
-				                             Json::StreamWriterBuilder writer;
-				                             Json::Value jmessage;
-				                             jmessage["type"] = desc->type();
-				                             jmessage["sdp"] = sdp;
+												 Json::StreamWriterBuilder writer;
+												 Json::Value jmessage;
+												 jmessage["type"] = desc->type();
+												 jmessage["sdp"] = sdp;
 
-				                             LOG(INFO) << "3 -------------------- send server offer ---------------------";
-				                             try
-				                             {
-					                             LOG(INFO) << " sending offer..." << writeString(writer, jmessage);
-					                             s->send(connection->hdl, writeString(writer, jmessage), websocketpp::frame::opcode::value::TEXT);
-				                             }
-				                             catch (const websocketpp::lib::error_code& e)
-				                             {
-					                             LOG(LERROR) << "Echo failed because: " << e
-						                             << "(" << e.message() << ")";
-				                             }
+												 LOG(INFO) << "3 -------------------- send server offer ---------------------";
+												 try
+												 {
+													 LOG(INFO) << " sending offer..." << writeString(writer, jmessage);
+													 s->send(connection->hdl, writeString(writer, jmessage), websocketpp::frame::opcode::value::TEXT);
+												 }
+												 catch (const websocketpp::lib::error_code& e)
+												 {
+													 LOG(LERROR) << "Echo failed because: " << e
+																 << "(" << e.message() << ")";
+												 }
 
-				                             LOG(INFO) << " create offer callback start.";
-			                             },
+												 LOG(INFO) << " create offer callback start.";
+											 },
 				                             nullptr
-			                             ), nullptr);
+											 ), nullptr);
 		});
 
 		peer_connection_callback->SetOnSignalingChange([&](webrtc::PeerConnectionInterface::SignalingState new_state)
 		{
 			if (new_state == webrtc::PeerConnectionInterface::SignalingState::kClosed)
 			{
-				peer_connection->Close();
+				//peer_connection->Close();
 			}
 		});
 	};
@@ -188,7 +190,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceive
 		{
 			if (new_state == webrtc::PeerConnectionInterface::SignalingState::kClosed)
 			{
-				peer_connection->Close();
+				//peer_connection->Close();
 			}
 		});
 	};

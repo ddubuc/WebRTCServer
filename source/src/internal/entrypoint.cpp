@@ -106,7 +106,7 @@ extern "C"
 
 	ENTRYPOINT void load()
 	{
-		rtc::LogMessage::LogToDebug(rtc::LS_ERROR);
+		// rtc::LogMessage::LogToDebug(rtc::LS_ERROR);
 
 		rtc::InitializeSSL();
 	}
