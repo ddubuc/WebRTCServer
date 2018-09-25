@@ -175,7 +175,9 @@ include("${CMAKE_SOURCE_DIR}/cmake/common_functions_and_macros.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/boost_config.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/webrtc_config.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/opencv_config.cmake")
-#include("${CMAKE_SOURCE_DIR}/cmake/libyuv_config.cmake")
+if (WIN32)
+	include("${CMAKE_SOURCE_DIR}/cmake/libyuv_config.cmake")
+endif()
 
 message(STATUS "Get WebRTC from ${WEBRTC_ROOT}")
 
@@ -225,11 +227,21 @@ target_compile_definitions(WebRTCServer PRIVATE -DWEBRTCSERVER_BUILD)
 include_directories(WebRTCServer ${WEBRTC_INCLUDE_DIRS} )
 
 #target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
-#target_link_libraries(WebRTCServer ${Libyuv_LIBRARIES})
+
 target_include_directories(WebRTCServer PRIVATE ${BoringSSL_DIR})
 
 if (WIN32)
-  target_link_libraries(WebRTCServer jsoncpp_lib)
+target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
+ #target_link_libraries(WebRTCServer ${Libyuv_LIBRARIES})
+ set_target_properties(jsoncpp_lib_static PROPERTIES
+	  MAP_IMPORTED_CONFIG_MINSIZEREL Release
+	  MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+	  )
+	set_target_properties(webrtc PROPERTIES
+	  MAP_IMPORTED_CONFIG_MINSIZEREL Release
+	  MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+	  )
+  target_link_libraries(WebRTCServer jsoncpp_lib_static)
   target_link_libraries(WebRTCServer webrtc)
   message(STATUS "Test if it works with windows")
   target_link_libraries(WebRTCServer ws2_32 wsock32 winmm dmoguids Secur32 msdmo wmcodecdspuuid amstrmid crypt32 iphlpapi secur32 Strmiids)

@@ -4,6 +4,7 @@
 #include "ConnectionData.h"
 #include "internal/CustomOpenCVCapturer.h"
 #include "internal/ConcurrentQueue.h"
+#include "json/include/json/json.h"
 
 inline void SendVideo(std::shared_ptr<ConnectionData> connection, std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat> > stack, rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory)
 {
