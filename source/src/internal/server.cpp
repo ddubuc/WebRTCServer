@@ -1,8 +1,10 @@
 #include <iostream>
 
 #include <openssl/ssl.h>
+#include <openssl/base.h>
 
-#include <webrtc/base/ssladapter.h>
+
+#include <rtc_base/ssladapter.h>
 #include "internal/server.h"
 
 using websocketpp::lib::placeholders::_1;
@@ -21,12 +23,10 @@ enum tls_mode {
     MOZILLA_INTERMEDIATE = 1,
     MOZILLA_MODERN = 2
 };
-static std::string _basename;
 
-context_ptr on_tls_init(tls_mode mode, websocketpp::connection_hdl hdl) {
+context_ptr on_tls_init(tls_mode mode, std::string basename, websocketpp::connection_hdl hdl) {
 
     namespace asio = websocketpp::lib::asio;
-	std::string & basename = _basename;
 	
     std::cout << "on_tls_init called with hdl: " << hdl.lock().get() << std::endl;
     std::cout << "using TLS mode: " << (mode == MOZILLA_MODERN ? "Mozilla Modern" : "Mozilla Intermediate") << std::endl;
@@ -97,19 +97,16 @@ WebsocketServer* ServerInit(std::function<void(WebsocketServer*, websocketpp::co
 ) {
 
   // Create a server endpoint
-  auto websocket_server = new WebsocketServer;
+  auto websocket_server = new WebsocketServer(basename);
 
-  // Initialize ASIO
-  websocket_server->init_asio();
-  _basename = basename;
-  std::cout << "Certificats path " << _basename << " " << basename << std::endl;
+  std::cout << "Certificats path " << basename << std::endl;
   // Register our message handler
-  websocket_server->set_message_handler(bind(msg_callback,websocket_server,::_1,::_2));
-  websocket_server->set_http_handler(bind(con_callback,websocket_server,::_1));
-  websocket_server->set_open_handler(bind(open_callback,websocket_server,::_1));
-  websocket_server->set_close_handler(bind(cls_callback,websocket_server,::_1));
-//  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_INTERMEDIATE,::_1));
-  websocket_server->set_reuse_addr(true);
+  websocket_server->onMessageHandler(msg_callback);
+  websocket_server->onConnectionHandler(con_callback);
+  websocket_server->onOpenHandler(open_callback);
+  websocket_server->onCloseHandler(cls_callback);
+  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_INTERMEDIATE, basename, ::_1));
+  
 
   
   // Start the ASIO io_service run loop

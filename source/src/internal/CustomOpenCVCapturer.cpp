@@ -2,17 +2,23 @@
 
 #include <memory>
 #include <thread>
-#include <webrtc/common_video/libyuv/include/webrtc_libyuv.h>
-#include <webrtc/api/video/i420_buffer.h>
+#include <common_video/libyuv/include/webrtc_libyuv.h>
+#include <api/video/i420_buffer.h>
 #include <opencv2/imgproc.hpp>
 
 #include "internal/webrtc.h"
 #include "internal/CustomOpenCVCapturer.h"
+#include <media/base/videocapturer.h>
+#include <libyuv/rotate.h>
+#include <libyuv/convert.h>
+
+#include <rtc_base/logging.h>
 
 using std::endl;
+using namespace rtc;
 
-CustomOpenCVCapturer::CustomOpenCVCapturer(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack)
-	: VideoCapturer(), now_rendering(false)
+CustomOpenCVCapturer::CustomOpenCVCapturer(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat> > i_stack)
+	: now_rendering(false)
 	  , start()
 	  , end(std::chrono::system_clock::now())
 	  , frame_timer(std::chrono::system_clock::now()), frame_counter(0)
@@ -24,10 +30,10 @@ CustomOpenCVCapturer::CustomOpenCVCapturer(std::shared_ptr<core::queue::Concurre
 CustomOpenCVCapturer::~CustomOpenCVCapturer()
 {
 
-	LOG(INFO) << "CustomeOpenCVCapturer is stopping capture" << std::endl;
+	RTC_LOG(INFO) << "CustomeOpenCVCapturer is stopping capture";
 	Stop();
 	
-	LOG(INFO) << "CustomeOpenCVCapturer is removing" << std::endl;
+	RTC_LOG(INFO) << "CustomeOpenCVCapturer is removing";
 	
 }
 
@@ -39,7 +45,7 @@ void CustomOpenCVCapturer::PushFrame()
 		start = std::chrono::system_clock::now();
 		/*if (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() > 10000)
 		{
-			LOG(INFO) << "rendering is too slow, so skiped.";
+			RTC_LOG(INFO) << "rendering is too slow, so skiped.";
 			end = std::chrono::system_clock::now();
 			continue;
 		}*/
@@ -55,14 +61,19 @@ void CustomOpenCVCapturer::PushFrame()
 		}
 		cv::Mat popped;
 		cv::Mat I420Mat;
+		if (!stack)
+		{
+			RTC_LOG(LS_WARNING) << "Frame buffering isn't yet set";
+			continue;
+		}
 		if (!stack->trypop_until(popped, 500)) // 500ms is like infinity but check if 
 		{
-			LOG(WARNING) << "Fail to pop";
+			RTC_LOG(LS_WARNING) << "Fail to pop";
 			continue;
 		}
 		else if (popped.empty() || popped.size().height == 0 || popped.size().width == 0)
 		{
-			LOG(WARNING) << "Fail to pop Image is empty";
+			RTC_LOG(LS_WARNING) << "Fail to pop Image is empty";
 			continue;
 		}
 		
@@ -79,19 +90,32 @@ void CustomOpenCVCapturer::PushFrame()
 		else if (popped.channels() == 4)
 			I420Mat = popped;
 		else
-		LOG(WARNING) << "Fail to convert";
+			RTC_LOG(LS_WARNING) << "Fail to convert";
 
 		//    rtc::scoped_refptr<webrtc::I420Buffer> buffer = webrtc::I420Buffer::Create(width, height);
 		rtc::scoped_refptr<webrtc::I420Buffer> buffer = webrtc::I420Buffer::Create(
 			buf_width, buf_height, buf_width, (buf_width + 1) / 2, (buf_width + 1) / 2);
-		const int conversionResult = webrtc::ConvertToI420(
-			webrtc::VideoType::kARGB, I420Mat.ptr(), 0, 0, // No cropping
-			buf_width, buf_height, CalcBufferSize(webrtc::VideoType::kARGB, buf_width, buf_height),
-			webrtc::kVideoRotation_0, buffer.get());
+		/*const int conversionResult = libyuv::ARGBToI420(I420Mat.ptr(), buf_width * buf_height, 
+			buffer.get()->MutableDataY(), buffer.get()->StrideY(), 
+			buffer.get()->MutableDataU(), buffer.get()->StrideU(), 
+			buffer.get()->MutableDataV(), buffer.get()->StrideV(), 
+			buf_width, buf_height);*/
+		const int conversionResult = libyuv::ConvertToI420((const uint8_t*)I420Mat.ptr(), buf_width * buf_height * 4,
+							buffer->MutableDataY(), buffer->StrideY(),
+							buffer->MutableDataU(), buffer->StrideU(),
+							buffer->MutableDataV(), buffer->StrideV(),
+							0, 0,
+							buf_width, buf_height,
+							buf_width, buf_height,
+							libyuv::kRotate0, cricket::FOURCC_ARGB);		
+		//const int conversionResult = libyuv::ConvertToI420(
+		//	I420Mat.ptr(), 0, 0, // No cropping
+		//	buf_width, buf_height, CalcBufferSize(webrtc::VideoType::kARGB, buf_width, buf_height),
+		//	webrtc::kVideoRotation_0, buffer.get());
 
 		if (conversionResult < 0)
 		{
-			LOG(LS_ERROR) << "Failed to convert capture frame from type "
+			RTC_LOG(LS_ERROR) << "Failed to convert capture frame from type "
 				<< static_cast<int>(webrtc::VideoType::kARGB) << "to I420.";
 			continue;
 		}
@@ -102,7 +126,7 @@ void CustomOpenCVCapturer::PushFrame()
 		OnFrame(frame, buf_width, buf_height);
 
 		end = std::chrono::system_clock::now();
-		LOG(INFO) << "frame used "
+		RTC_LOG(LS_VERBOSE) << "frame used "
 			<< std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
 			<< " micro sec.";
 	}
@@ -110,17 +134,17 @@ void CustomOpenCVCapturer::PushFrame()
 
 cricket::CaptureState CustomOpenCVCapturer::Start(const cricket::VideoFormat& capture_format)
 {
-	LOG(INFO) << "CustomVideoCapture start.";
+	RTC_LOG(INFO) << "CustomVideoCapture start.";
 	if (capture_state() == cricket::CS_RUNNING)
 	{
-		LOG(LS_ERROR) << "Start called when it's already started.";
+		RTC_LOG(LS_ERROR) << "Start called when it's already started.";
 		return capture_state();
 	}
 
 	now_rendering = true;
 	SetCaptureFormat(&capture_format);
 
-	renderer_task = ::make_unique<std::thread>([this]()
+	renderer_task = std::make_unique<std::thread>([this]()
 	{
 		PushFrame();
 	});
@@ -131,7 +155,7 @@ cricket::CaptureState CustomOpenCVCapturer::Start(const cricket::VideoFormat& ca
 
 void CustomOpenCVCapturer::Stop()
 {
-	LOG(INFO) << "CustomVideoCapture::Stop()";
+	RTC_LOG(INFO) << "CustomVideoCapture::Stop()";
 	now_rendering = false;
 	
 	if (renderer_task && renderer_task->joinable())
@@ -142,7 +166,7 @@ void CustomOpenCVCapturer::Stop()
 
 	if (capture_state() == cricket::CS_STOPPED)
 	{
-		//LOG(LS_ERROR) << "Stop called when it's already stopped.";
+		//RTC_LOG(LS_ERROR) << "Stop called when it's already stopped.";
 		return;
 	}
 

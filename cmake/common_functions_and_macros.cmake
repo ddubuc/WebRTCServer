@@ -39,7 +39,7 @@ endfunction(group_for_visual_studio)
 # Refactor. The current version is directly inhereted and was only slightly
 # modified to create the macro.
 
-macro(add_lib _lib_name _src_root_path  _lib_type)
+macro(add_lib _lib_name _src_root_path  _objs _lib_type)
   message_header("HIPE LIBRARY: ${_lib_name}")
 
   set(_src_lib_path ${_src_root_path}/src)
@@ -66,7 +66,7 @@ macro(add_lib _lib_name _src_root_path  _lib_type)
 #     set(_lib_type "SHARED")
 #   endif(HIPE_STATIC_LIBS)
 
-  add_library(${_lib_name} ${_lib_type} ${_source_list} ${_header_list})
+  add_library(${_lib_name} ${_lib_type} ${_objs} ${_source_list} ${_header_list})
   target_include_directories(${_lib_name} BEFORE PRIVATE ${_src_lib_inc_path})
 
   if (UNIX)

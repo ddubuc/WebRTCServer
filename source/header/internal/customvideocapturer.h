@@ -1,7 +1,7 @@
 #ifndef OMEKASHI_CUSTOMVIDEOCAPTURER_H
 #define OMEKASHI_CUSTOMVIDEOCAPTURER_H
  
-#include "webrtc/media/base/videocapturer.h"
+#include "media/base/videocapturer.h"
 #include "renderer.h"
 #include "session.h"
 #include "ConcurrentQueue.h"

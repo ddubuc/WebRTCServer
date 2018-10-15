@@ -4,14 +4,15 @@
 #include "customvideocapturer.h"
 
 #include <cstdint>
-#include "webrtc/api/video/video_frame.h"
-#include "webrtc/api/mediastreaminterface.h"
+#include "api/video/video_frame.h"
+#include "api/mediastreaminterface.h"
+#include "PeerConnectionManager.h"
 
-class VideoRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
+class VideoRenderer : public PeerConnectionManager::VideoSink {
   public:
     explicit VideoRenderer(int width, int height,
         rtc::scoped_refptr<webrtc::VideoTrackInterface> track_to_render,
-		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack);
+		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> i_stack);
     virtual ~VideoRenderer();
 
     void OnFrame(const webrtc::VideoFrame& frame) override;
@@ -19,7 +20,7 @@ class VideoRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
   protected:
     void SetSize(int width, int height);
     std::unique_ptr<uint8_t[]> image;
-    rtc::scoped_refptr<webrtc::VideoTrackInterface> rendered_track;
+   /* rtc::scoped_refptr<webrtc::VideoTrackInterface> rendered_track;*/
 	std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> stack;
 
     int width;

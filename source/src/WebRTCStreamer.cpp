@@ -10,12 +10,14 @@
 #include<iostream>
 
 #include "WebRTCStreamer.h"
-#include <webrtc/api/peerconnectioninterface.h>
+#include <api/peerconnectioninterface.h>
 #include "internal/ConnectionData.h"
 #include "internal/WebSocketHandler.h"
 #include "internal/CustomOpenCVCapturer.h"
 #include "internal/server.h"
 #include "internal/ConcurrentQueue.h"
+#include <api/audio_codecs/builtin_audio_decoder_factory.h>
+#include <rtc_base/logging.h>
 
 std::string GetCurrentWorkingDir(void) {
 	char buff[FILENAME_MAX];
@@ -49,7 +51,7 @@ int WebRTCStreamer::startWebRTCServer()
 		// mapping between socket connection and peer connection.
 		std::unordered_map<void*, std::shared_ptr<ConnectionData>> connections;
 		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> l_stack;
-		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory = webrtc::CreatePeerConnectionFactory();
+		
 
 		WebsocketServer* _ws = static_cast<WebsocketServer *>(ws);
 		{
@@ -69,14 +71,14 @@ int WebRTCStreamer::startWebRTCServer()
 			base_cert << "mylaptop";
 			_ws = ServerInit(// on http = on connection
 				OnConnectHandler(),
-				OnOpenSenderHandler(connections, peer_connection_factory),
+				OnOpenSenderHandler(),
 				//on_close
-				OnCloseHandler(connections),
+				OnCloseSenderHandler(),
 				// on message
-				OnMessageSenderHandler(connections,
-									   l_stack, peer_connection_factory)
+				OnMessageSenderHandler(l_stack),
+				base_cert.str());
 
-			, base_cert.str());
+		
 			ws = _ws;
 
 
@@ -87,7 +89,7 @@ int WebRTCStreamer::startWebRTCServer()
 			_ws->start_accept();
 		} // safe lock guard
 
-		LOG(INFO) << "run server " << port;
+		RTC_LOG(INFO) << "run server " << port;
 		_ws->run();
 		{
 			std::lock_guard<std::mutex> lock(safe_quard);

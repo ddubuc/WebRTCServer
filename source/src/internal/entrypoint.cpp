@@ -4,6 +4,7 @@
 #include "internal/entrypoint.h"
 #include "internal/customvideocapturer.h"
 #include "internal/CustomOpenCVCapturer.h"
+#include <rtc_base/ssladapter.h>
 
 //
 //void SendVideo(rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory,
@@ -58,7 +59,7 @@
 //
 //		// Start the server accept loop
 //		ws->start_accept();
-//		LOG(INFO) << "run server 9001";
+//		RTC_LOG(INFO) << "run server 9001";
 //		ws->run();
 //	});
 //
@@ -83,7 +84,7 @@
 //		// Start the server accept loop
 //		ws2->start_accept();
 //
-//		LOG(INFO) << "run server 9002";
+//		RTC_LOG(INFO) << "run server 9002";
 //		ws2->run();
 //	});
 //	task2->join();
@@ -106,7 +107,7 @@ extern "C"
 
 	ENTRYPOINT void load()
 	{
-		// rtc::LogMessage::LogToDebug(rtc::LS_ERROR);
+		rtc::LogMessage::LogToDebug(rtc::LS_INFO);
 
 		rtc::InitializeSSL();
 	}
