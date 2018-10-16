@@ -18,7 +18,7 @@ VideoRenderer::~VideoRenderer() {
 }
 
 void VideoRenderer::SetSize(int w, int h) {
-  RTC_LOG(INFO) << "VideoRenderer::SetSize(" << w << "," << h << ")";
+  RTC_LOG(LS_VERBOSE) << "VideoRenderer::SetSize(" << w << "," << h << ")";
 
   if (width == w && height == h) {
     return;
@@ -32,7 +32,7 @@ void VideoRenderer::SetSize(int w, int h) {
 
 void VideoRenderer::OnFrame(const webrtc::VideoFrame& video_frame) {
 
-  RTC_LOG(INFO) << "VideoRenderer::OnFrame()";
+  RTC_LOG(LS_VERBOSE) << "VideoRenderer::OnFrame()";
 
   rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(video_frame.video_frame_buffer()->ToI420());
 

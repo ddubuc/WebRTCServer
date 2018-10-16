@@ -174,12 +174,24 @@ PeerConnectionManager::PeerConnectionManager(const std::list<std::string>& iceSe
 ** -------------------------------------------------------------------------*/
 PeerConnectionManager::~PeerConnectionManager()
 {
-	std::lock_guard<std::mutex> peerlock(m_peerMapMutex);
-	for (auto pair : this->peer_connectionobs_map_)
+	std::vector<std::string> peerIds;
+
 	{
-		this->hangUp(pair.first);
+		std::lock_guard<std::mutex> peerlock(m_peerMapMutex);
+		for (auto pair : this->peer_connectionobs_map_)
+		{
+			peerIds.push_back(pair.first);
+		}
 	}
-	this->peer_connectionobs_map_.clear();
+	for (auto & peerId : peerIds)
+	{
+		this->hangUp(peerId);
+	}
+
+	{
+		std::lock_guard<std::mutex> peerlock(m_peerMapMutex);
+		this->peer_connectionobs_map_.clear();
+	}
 }
 
 
@@ -809,7 +821,7 @@ const Json::Value PeerConnectionManager::hangUp(const std::string& peerid)
 		if (it != peer_connectionobs_map_.end())
 		{
 			pcObserver = it->second;
-			RTC_LOG(LS_ERROR) << "Remove PeerConnection peerid:" << peerid;
+			RTC_LOG(INFO) << "Remove PeerConnection peerid:" << peerid;
 			peer_connectionobs_map_.erase(it);
 		}
 

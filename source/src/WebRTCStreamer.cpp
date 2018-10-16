@@ -25,9 +25,10 @@ std::string GetCurrentWorkingDir(void) {
 	return current_working_dir;
 }
 
-WebRTCStreamer::WebRTCStreamer(int i_port, const char * & work_dir) : port(i_port)
+WebRTCStreamer::WebRTCStreamer(int i_port, const char * work_dir, const char *i_base_cert) : port(i_port)
 {
 	working_dir = strdup(work_dir);
+	base_cert = strdup(i_base_cert);
 	
 	ws = nullptr;
 	core::queue::ConcurrentQueue<cv::Mat> * l_stack = new core::queue::ConcurrentQueue<cv::Mat>();
@@ -56,17 +57,8 @@ int WebRTCStreamer::startWebRTCServer()
 			std::lock_guard<std::mutex> lock(safe_quard);
 			l_stack.reset(static_cast<core::queue::ConcurrentQueue<cv::Mat> *>(stack.get()), [] (core::queue::ConcurrentQueue<cv::Mat> *) {});
 
-			std::stringstream base_cert;
-			base_cert << this->working_dir;
-			if (!base_cert.str().empty())
-			{
-#ifdef WIN32
-				base_cert << "\\";
-#else
-				base_cert << "/";
-#endif /* WIN32 */
-			}
-			base_cert << "mylaptop";
+			
+			//base_cert << "mylaptop";
 			_ws = ServerInit(// on http = on connection
 				OnConnectHandler(),
 				OnOpenSenderHandler(),
@@ -74,7 +66,7 @@ int WebRTCStreamer::startWebRTCServer()
 				OnCloseSenderHandler(),
 				// on message
 				OnMessageSenderHandler(l_stack),
-				base_cert.str());
+				base_cert);
 
 		
 			ws = _ws;
@@ -156,9 +148,9 @@ void WebRTCStreamer::Send(const cv::Mat& mat)
 	l_stack->push(toSend);
 }
 
-cWebStreamer newWebRTCStreamer(int port, const char * & working_dir)
+cWebStreamer newWebRTCStreamer(int port, const char * working_dir, const char * base_cert)
 {
-	return new WebRTCStreamer(port, working_dir);
+	return new WebRTCStreamer(port, working_dir, base_cert);
 }
 
 void sendNewFrame(cWebStreamer ctx, uint8_t* data, int width, int height, int channel)

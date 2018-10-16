@@ -14,10 +14,11 @@ protected:
 	std::shared_ptr<void> stack;
 	void* ws;
 	char * working_dir;
+	char * base_cert;
 	void *_contextWebRTC;
 
 public:
-	WebRTCStreamer(int i_port, const char * & work_dir);
+	WebRTCStreamer(int i_port, const char * work_dir, const char * i_base_cert);
 
 	~WebRTCStreamer();
 
@@ -31,7 +32,7 @@ public:
 
 typedef void * cWebStreamer;
 
-WEBRTCSERVER_EXPORT cWebStreamer newWebRTCStreamer(int port, const char *& workdir);
+WEBRTCSERVER_EXPORT cWebStreamer newWebRTCStreamer(int port, const char * workdir, const char *base_cert);
 
 WEBRTCSERVER_EXPORT void sendNewFrame(cWebStreamer ctx, uint8_t* data, int width, int height, int channel);
 

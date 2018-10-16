@@ -8,8 +8,8 @@
 int main(int argc, char ** argv)
 {
 	const char * root = argv[1];
-	WebRTCCapturer capture(9001, root);
-	WebRTCStreamer streamer(9002, root);
+	WebRTCCapturer capture(9001, root, root);
+	WebRTCStreamer streamer(9002, root, root);
 
 	capture.startWebRTCServer();
 	streamer.startWebRTCServer();

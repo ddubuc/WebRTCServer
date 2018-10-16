@@ -100,8 +100,8 @@ if(WIN32)
 	# set(Libyuv_DIR "${HIPE_EXTERNAL_DIR}/libyuv" CACHE PATH "Libyuv Directory" FORCE)
 	# list(APPEND CMAKE_PREFIX_PATH "${Libyuv_DIR}")
 
-	# set(Websocketpp_DIR "${HIPE_EXTERNAL_DIR}/websocketpp" CACHE PATH "Websocketpp Directory" FORCE)
-	# list(APPEND CMAKE_PREFIX_PATH "${Websocketpp_DIR}")
+	set(Websocketpp_DIR "${HIPE_EXTERNAL_DIR}/websocketpp" CACHE PATH "Websocketpp Directory" FORCE)
+	list(APPEND CMAKE_PREFIX_PATH "${Websocketpp_DIR}")
 
 	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}/webrtc" CACHE PATH "WebRTC Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DIR}")
@@ -247,7 +247,7 @@ endif()
 
 target_compile_definitions(WebRTCServer PRIVATE -DWEBRTCSERVER_BUILD)
 
-include_directories(WebRTCServer ${WEBRTC_INCLUDE_DIRS} )
+include_directories(WebRTCServer ${WEBRTC_INCLUDE_DIRS} ${HIPE_EXTERNAL_DIR} )
 
 #target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
 
