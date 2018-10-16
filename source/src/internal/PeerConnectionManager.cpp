@@ -24,7 +24,6 @@
 #include "media/engine/webrtcvideodecoderfactory.h"
 #include <internal/PeerConnectionManager.h>
 #include "rtc_base/strings/json.h"
-#include "base/optional.h"
 #include "internal/CapturerFactory.h"
 
 

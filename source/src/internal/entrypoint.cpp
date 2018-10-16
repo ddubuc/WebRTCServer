@@ -107,7 +107,9 @@ extern "C"
 
 	ENTRYPOINT void load()
 	{
+#ifdef WIN32
 		rtc::LogMessage::LogToDebug(rtc::LS_INFO);
+#endif
 
 		rtc::InitializeSSL();
 	}

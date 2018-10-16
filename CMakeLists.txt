@@ -135,14 +135,14 @@ else()
 	set(Websocketpp_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "Websocketpp Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${Websocketpp_DIR}")
 
-	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}" CACHE PATH "WebRTC Directory" FORCE)
+	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}/webrtc" CACHE PATH "WebRTC Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DIR}")
 	
-	set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "JsonPP Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
+	#set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "JsonPP Directory" FORCE)
+	#list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
 
-	set(BoringSSL_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "BOringSSL Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${BoringSSL_DIR}")
+	#set(BoringSSL_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "BOringSSL Directory" FORCE)
+	#list(APPEND CMAKE_PREFIX_PATH "${BoringSSL_DIR}")
 
 endif()
 
@@ -183,10 +183,12 @@ message(STATUS "Get WebRTC from ${WEBRTC_ROOT}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-find_package(LibWebRTC
+if (WIN32)
+  find_package(LibWebRTC
 	REQUIRED
 	PATHS "${WEBRTC_ROOT}/lib/cmake"
-NO_DEFAULT_PATH)
+	NO_DEFAULT_PATH)
+endif()
 
 #controls where to build the executables after "make"
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
@@ -199,13 +201,14 @@ if(WIN32)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
   add_compile_options(-EHsc /wd4820 /wd4668 /wd4619 /wd4626 /wd5031 /wd4365 /wd4710 /wd4514 /wd4503)
 else()
-	add_compile_options(-fPIC -fno-rtti -std=gnu++0x)
+	add_compile_options(-fPIC)
+	add_definitions(-std=c++11)
 endif()
 
-
-if(WIN32)
 #big hack to link proper on windows with webrtc full which isn't...full
-	set (WEBRTCOBJS ${WebRTC_DIR}/obj/)
+set (WEBRTCOBJS ${WebRTC_DIR}/obj/)
+	
+if(WIN32)
 	set (OBJS ${WEBRTCOBJS}/jsoncpp/json_value${CMAKE_C_OUTPUT_EXTENSION}
 				${WEBRTCOBJS}/jsoncpp/json_reader${CMAKE_C_OUTPUT_EXTENSION}
 				${WEBRTCOBJS}/jsoncpp/json_writer${CMAKE_C_OUTPUT_EXTENSION}
@@ -215,17 +218,31 @@ if(WIN32)
 				${WEBRTCOBJS}/bbr/rtt_stats${CMAKE_C_OUTPUT_EXTENSION}
 				${WEBRTCOBJS}/bbr/loss_rate_filter${CMAKE_C_OUTPUT_EXTENSION}
 				)
-	add_library (webrtcextra STATIC ${OBJS})	
-	set_target_properties(webrtcextra PROPERTIES LINKER_LANGUAGE CXX)
+
+else()
+	set (OBJS ${WEBRTCOBJS}/jsoncpp/json_value${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/jsoncpp/json_reader${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/jsoncpp/json_writer${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/jsoncpp/json${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/builtin_video_decoder_factory${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/builtin_video_encoder_factory${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/createpeerconnectionfactory${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/bbr_network_controller${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/bandwidth_sampler${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/rtt_stats${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/loss_rate_filter${CMAKE_C_OUTPUT_EXTENSION}
+				)
 endif()
 
+add_library (webrtcextra STATIC ${OBJS})
+set_target_properties(webrtcextra PROPERTIES LINKER_LANGUAGE CXX)
 
-add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" " "  SHARED)
+add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" SHARED)
 
 if (WIN32)
   target_compile_definitions(WebRTCServer PRIVATE -DNOMINMAX -DWEBRTC_WIN )
 else()
-  target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX -D_GLIBCXX_USE_CXX11_ABI=0) # -fno-rtti)
+  target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX) # -D_GLIBCXX_USE_CXX11_ABI=0) # -fno-rtti)
 endif()
 
 target_compile_definitions(WebRTCServer PRIVATE -DWEBRTCSERVER_BUILD)
@@ -254,14 +271,15 @@ endif()
 
 
 if (UNIX)
-  include(${LIBWEBRTC_USE_FILE})
-  target_link_libraries(WebRTCServer -Wl,--whole-archive ${LIBWEBRTC_LIBRARIES} -Wl,--no-whole-archive )
-  target_link_libraries(WebRTCServer jsoncpp_lib_static)
+  #include(${LIBWEBRTC_USE_FILE})
+  target_link_libraries(WebRTCServer ${WEBRTC_LIBRARIES} )
+  target_link_libraries(WebRTCServer -lX11 webrtcextra)
 
 endif()  
 
 target_include_directories(WebRTCServer PRIVATE ${WEBRTC_INCLUDE_DIRS})
-target_include_directories(WebRTCServer PRIVATE ${HIPE_EXTERNAL_DIR})
+#target_include_directories(WebRTCServer PRIVATE ${HIPE_EXTERNAL_DIR})
+target_include_directories(WebRTCServer PRIVATE ${HIPE_EXTERNAL_DIR}/include)
 target_include_directories(WebRTCServer PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(WebRTCServer ${OpenCV_LIBS})
 target_link_libraries(WebRTCServer ${Boost_LIBRARIES})

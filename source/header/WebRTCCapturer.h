@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 #include <thread>
 #include <mutex>
 #include <opencv2/core/mat.hpp>

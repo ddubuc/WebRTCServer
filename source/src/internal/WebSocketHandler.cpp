@@ -1,4 +1,5 @@
 #include "internal/WebSocketHandler.h"
+#include "internal/videorenderer.h"
 //#include <rtc_base/strings/json.h>
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnConnectHandler()
@@ -108,7 +109,7 @@ inline void ProcessMessage()
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceiverHandler(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> stack)
 {
-	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [&, stack](WebsocketServer* s, websocketpp::connection_hdl hdl)
 	{
 		RTC_LOG(INFO) << "on_open ";
 		std::string peerId = "VideoReceiver";
@@ -118,7 +119,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceive
 
 		std::shared_ptr<void> shared_ptr = hdl.lock();
 		peer_connection_observer->setFuncOnAddStream(
-			[&](PeerConnectionManager::PeerConnectionObserver* peerConnectionObserver,
+			[&, stack](PeerConnectionManager::PeerConnectionObserver* peerConnectionObserver,
 			    rtc::scoped_refptr<webrtc::MediaStreamInterface> stream)
 			{
 				webrtc::VideoTrackVector tracks = stream->GetVideoTracks();
@@ -296,7 +297,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageSenderHandler(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> i_stack)
 {
-	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
+	auto func = [&, i_stack](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
 	{
 		std::shared_ptr<void> shared_ptr = hdl.lock();
 		RTC_LOG(INFO) << "on_message called with hdl: " << shared_ptr.get()
