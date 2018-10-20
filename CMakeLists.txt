@@ -52,7 +52,7 @@ if(UNIX)
 
 	if(NOT EXISTS "${HIPE_EXTERNAL}")
 		file(MAKE_DIRECTORY "${HIPE_EXTERNAL}")
-		file(MAKE_DIRECTORY "${HIPE_EXTERNAL}/linux64/install")
+		file(MAKE_DIRECTORY "${HIPE_EXTERNAL}/linux64")
 	endif()
 else()
 
@@ -75,7 +75,7 @@ get_filename_component(HIPE_EXTERNAL "${HIPE_EXTERNAL}" ABSOLUTE)
 if(WIN32)
 	set(HIPE_EXTERNAL_DIR "${HIPE_EXTERNAL}/win64")
 else(WIN32)
-	set(HIPE_EXTERNAL_DIR "${HIPE_EXTERNAL}/linux64/install")
+	set(HIPE_EXTERNAL_DIR "${HIPE_EXTERNAL}/linux64")
 	# Without this, the linker fails to find e.g. libboost_wave when building
 	# multiple libraries ("cannot find -lboost_wave"), despite correctly locating
 	# the libraries in HIPE_EXTERNAL with the find_package command. For example,
