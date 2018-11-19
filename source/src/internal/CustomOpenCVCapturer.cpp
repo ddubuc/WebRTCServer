@@ -143,11 +143,11 @@ cricket::CaptureState CustomOpenCVCapturer::Start(const cricket::VideoFormat& ca
 
 	now_rendering = true;
 	SetCaptureFormat(&capture_format);
-
-	renderer_task = std::make_unique<std::thread>([this]()
+	renderer_task.reset();
+	renderer_task.reset(new std::thread([this]()
 	{
 		PushFrame();
-	});
+	}));
 
 	
 	return cricket::CS_RUNNING;

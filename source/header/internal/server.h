@@ -30,7 +30,7 @@ public:
 	{
 		std::list<std::string> iceServerList;
 		iceServerList.push_back(std::string("stun:stun.l.google.com:19302"));
-		webrtc::AudioDeviceModule::AudioLayer audioLayer = webrtc::AudioDeviceModule::kPlatformDefaultAudio;
+		webrtc::AudioDeviceModule::AudioLayer audioLayer = webrtc::AudioDeviceModule::kDummyAudio;
 		peerConnectionManager = std::make_shared<PeerConnectionManager>(iceServerList, audioLayer, ".*");
 		init_asio();
 		set_reuse_addr(true);

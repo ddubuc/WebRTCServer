@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 #include "server.h"
-#include "ConnectionData.h"
+
 
 #include "internal/ConcurrentQueue.h"
 

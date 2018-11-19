@@ -1,6 +1,5 @@
 #include "WebRTCCapturer.h"
 #include <api/peerconnectioninterface.h>
-#include "internal/ConnectionData.h"
 #include "internal/WebSocketHandler.h"
 #include "internal/server.h"
 #include "internal/ConcurrentQueue.h"
@@ -21,17 +20,11 @@ WebRTCCapturer::~WebRTCCapturer()
 	working_dir = nullptr;
 }
 
-void emptyCall(std::shared_ptr<ConnectionData> e)
-{
-}
-
 int WebRTCCapturer::startWebRTCServer()
 {
 	webRTC_task = std::make_shared<std::thread>([this]
 	{
 		// mapping between socket connection and peer connection.
-		std::unordered_map<void*, std::shared_ptr<ConnectionData>> connections;
-
 		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> l_stack;
 		l_stack.reset(static_cast<core::queue::ConcurrentQueue<cv::Mat> *>(stack.get()), [](core::queue::ConcurrentQueue<cv::Mat> * ptr)
 		{
@@ -70,8 +63,6 @@ int WebRTCCapturer::startWebRTCServer()
 			std::error_code er;
 			_ws->stop_listening(er);
 		
-			connections.clear();
-
 			delete _ws;
 			_ws = nullptr;
 			ws = nullptr;

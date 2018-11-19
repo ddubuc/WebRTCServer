@@ -11,7 +11,6 @@
 
 #include "WebRTCStreamer.h"
 #include <api/peerconnectioninterface.h>
-#include "internal/ConnectionData.h"
 #include "internal/WebSocketHandler.h"
 #include "internal/CustomOpenCVCapturer.h"
 #include "internal/server.h"
@@ -49,7 +48,6 @@ int WebRTCStreamer::startWebRTCServer()
 	webRTC_task = std::make_shared<std::thread>([this]
 	{
 		// mapping between socket connection and peer connection.
-		std::unordered_map<void*, std::shared_ptr<ConnectionData>> connections;
 		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> l_stack;
 		
 
@@ -91,9 +89,6 @@ int WebRTCStreamer::startWebRTCServer()
 			_ws = nullptr;
 			ws = nullptr;
 			
-			connections.clear();
-
-		
 		}
 	});
 
