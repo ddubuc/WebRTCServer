@@ -1,5 +1,5 @@
 #include "internal/WebSocketHandler.h"
-//#include <rtc_base/strings/json.h>
+#include "internal/videorenderer.h"
 
 std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnConnectHandler()
 {

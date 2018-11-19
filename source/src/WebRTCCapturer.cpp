@@ -38,8 +38,6 @@ int WebRTCCapturer::startWebRTCServer()
 			std::stringstream base_cert;
 			base_cert << this->working_dir;
 
-			std::shared_ptr<ConnectionData> empty;
-			std::function<void(std::shared_ptr<ConnectionData>)> func = &emptyCall;
 			_ws = ServerInit(
 				// on http = on connection
 				OnConnectHandler(),
