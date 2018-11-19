@@ -17,7 +17,7 @@ protected:
 	void *_contextWebRTC;
 
 public:
-	WebRTCStreamer(int i_port, const char * & work_dir);
+	WebRTCStreamer(int i_port, const char * work_dir);
 
 	~WebRTCStreamer();
 
@@ -31,7 +31,7 @@ public:
 
 typedef void * cWebStreamer;
 
-WEBRTCSERVER_EXPORT cWebStreamer newWebRTCStreamer(int port, const char *& workdir);
+WEBRTCSERVER_EXPORT cWebStreamer newWebRTCStreamer(int port, const char * workdir);
 
 WEBRTCSERVER_EXPORT void sendNewFrame(cWebStreamer ctx, uint8_t* data, int width, int height, int channel);
 

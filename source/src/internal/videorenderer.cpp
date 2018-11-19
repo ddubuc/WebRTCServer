@@ -1,25 +1,24 @@
-
-#include <webrtc/base/logging.h>
-#include <libyuv/convert_argb.h>
+#define _WINSOCKAPI_ 
+#include <third_party/libyuv/include/libyuv/convert_argb.h>
 #include <stack>
 #include "internal/videorenderer.h"
 
 VideoRenderer::VideoRenderer(int w, int h,
     rtc::scoped_refptr<webrtc::VideoTrackInterface> track_to_render,
-	std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> & i_stack)
-  : rendered_track(track_to_render), width(w), height(h), stack(i_stack) {
+	std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> i_stack)
+  : VideoSink(track_to_render), /*rendered_track(track_to_render),*/ width(w), height(h), stack(i_stack) {
 
-  rendered_track->AddOrUpdateSink(this, rtc::VideoSinkWants());
+  /*rendered_track->AddOrUpdateSink(this, rtc::VideoSinkWants());*/
 
   
 }
 
 VideoRenderer::~VideoRenderer() {
-  rendered_track->RemoveSink(this);
+  //rendered_track->RemoveSink(this);
 }
 
 void VideoRenderer::SetSize(int w, int h) {
-  LOG(INFO) << "VideoRenderer::SetSize(" << w << "," << h << ")";
+  RTC_LOG(LS_VERBOSE) << "VideoRenderer::SetSize(" << w << "," << h << ")";
 
   if (width == w && height == h) {
     return;
@@ -33,9 +32,9 @@ void VideoRenderer::SetSize(int w, int h) {
 
 void VideoRenderer::OnFrame(const webrtc::VideoFrame& video_frame) {
 
-  LOG(INFO) << "VideoRenderer::OnFrame()";
+  RTC_LOG(LS_VERBOSE) << "VideoRenderer::OnFrame()";
 
-  rtc::scoped_refptr<webrtc::PlanarYuvBuffer> buffer(video_frame.video_frame_buffer()->ToI420());
+  rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(video_frame.video_frame_buffer()->ToI420());
 
   SetSize(buffer->width(), buffer->height());
 
@@ -52,6 +51,7 @@ void VideoRenderer::OnFrame(const webrtc::VideoFrame& video_frame) {
   stack->clear();
 
   stack->push(img);
+
   /*capturer.Render(image.get(), width, height);*/
 }
 

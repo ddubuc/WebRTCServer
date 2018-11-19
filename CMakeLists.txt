@@ -87,30 +87,30 @@ endif(WIN32)
 
 if(WIN32)
 
-	set(Boost_DIR "${HIPE_EXTERNAL_DIR}/boost_1_62_0/" CACHE PATH "Boost_DIR" FORCE)
-	set(Boost_INCLUDE_DIR "${Boost_DIR}" CACHE PATH "Boost_INCLUDE_DIR" FORCE)
-	set(BOOST_LIBRARYDIR "${Boost_DIR}/lib64-msvc-14.0" CACHE PATH "BOOST_LIBRARYDIR" FORCE)
+	set(Boost_DIR "${HIPE_EXTERNAL_DIR}/boost_1_66_0/" CACHE PATH "Boost_DIR" FORCE)
+	set(Boost_INCLUDE_DIR "${Boost_DIR}/include" CACHE PATH "Boost_INCLUDE_DIR" FORCE)
+	set(BOOST_LIBRARYDIR "${Boost_DIR}/lib/" CACHE PATH "BOOST_LIBRARYDIR" FORCE)
 	set(BOOST_ROOT "${Boost_DIR}/"  CACHE PATH "BOOST_ROOT" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${Boost_DIR}")
 
 
-	set(OpenCV_DIR "${HIPE_EXTERNAL_DIR}/opencv-3.4" CACHE PATH "OpenCV Directory" FORCE)
+	set(OpenCV_DIR "${HIPE_EXTERNAL_DIR}" CACHE PATH "OpenCV Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${OpenCV_DIR}")
 
-	set(Libyuv_DIR "${HIPE_EXTERNAL_DIR}/libyuv" CACHE PATH "Libyuv Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${Libyuv_DIR}")
+	# set(Libyuv_DIR "${HIPE_EXTERNAL_DIR}/libyuv" CACHE PATH "Libyuv Directory" FORCE)
+	# list(APPEND CMAKE_PREFIX_PATH "${Libyuv_DIR}")
 
-	set(Websocketpp_DIR "${HIPE_EXTERNAL_DIR}/websocketpp" CACHE PATH "Websocketpp Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${Websocketpp_DIR}")
+	# set(Websocketpp_DIR "${HIPE_EXTERNAL_DIR}/websocketpp" CACHE PATH "Websocketpp Directory" FORCE)
+	# list(APPEND CMAKE_PREFIX_PATH "${Websocketpp_DIR}")
 
-	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}/WebRTC" CACHE PATH "WebRTC Directory" FORCE)
+	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}/webrtc" CACHE PATH "WebRTC Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DIR}")
 
-	set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/json" CACHE PATH "Websocketpp Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
+	# set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/json" CACHE PATH "Websocketpp Directory" FORCE)
+	# list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
 
-	set(BoringSSL_DIR "${HIPE_EXTERNAL_DIR}/boringssl-webRTC" CACHE PATH "BOringSSL Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${BoringSSL_DIR}")
+	# set(BoringSSL_DIR "${HIPE_EXTERNAL_DIR}/boringssl-webRTC" CACHE PATH "BOringSSL Directory" FORCE)
+	# list(APPEND CMAKE_PREFIX_PATH "${BoringSSL_DIR}")
 
 else()
 
@@ -136,7 +136,7 @@ else()
 	list(APPEND CMAKE_PREFIX_PATH "${Websocketpp_DIR}")
 
 	set(WebRTC_DIR "${HIPE_EXTERNAL_DIR}" CACHE PATH "WebRTC Directory" FORCE)
-	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DI}")
+	list(APPEND CMAKE_PREFIX_PATH "${WebRTC_DIR}")
 	
 	set(JsonPP_DIR "${HIPE_EXTERNAL_DIR}/" CACHE PATH "JsonPP Directory" FORCE)
 	list(APPEND CMAKE_PREFIX_PATH "${JsonPP_DIR}")
@@ -185,20 +185,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(LibWebRTC
 	REQUIRED
-	PATHS "${WEBRTC_ROOT}/lib/cmake/LibWebRTC"
+	PATHS "${WEBRTC_ROOT}/lib/cmake"
 NO_DEFAULT_PATH)
-
-find_package(jsoncpp
-	REQUIRED
-	PATHS "${JsonPP_DIR}/lib/cmake/jsoncpp"
-NO_DEFAULT_PATH)
-
-if(UNIX)
-  find_package(BoringSSL
-	REQUIRED
-	PATHS "${BoringSSL_DIR}/lib/cmake/"
-	NO_DEFAULT_PATH)
-endif(UNIX)
 
 #controls where to build the executables after "make"
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
@@ -209,15 +197,33 @@ set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target/include)
 #Add some multithreaded build support =====================================================================================================
 if(WIN32)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-  add_compile_options(/wd4820 /wd4668 /wd4619 /wd4626 /wd5031 /wd4365 /wd4710 /wd4514 /wd4503)
+  add_compile_options(-EHsc /wd4820 /wd4668 /wd4619 /wd4626 /wd5031 /wd4365 /wd4710 /wd4514 /wd4503)
 else()
 	add_compile_options(-fPIC -fno-rtti -std=gnu++0x)
 endif()
 
-add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" SHARED)
+
+if(WIN32)
+#big hack to link proper on windows with webrtc full which isn't...full
+	set (WEBRTCOBJS ${WebRTC_DIR}/obj/)
+	set (OBJS ${WEBRTCOBJS}/jsoncpp/json_value${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/jsoncpp/json_reader${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/jsoncpp/json_writer${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/jsoncpp/json${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/bbr_network_controller${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/bandwidth_sampler${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/rtt_stats${CMAKE_C_OUTPUT_EXTENSION}
+				${WEBRTCOBJS}/bbr/loss_rate_filter${CMAKE_C_OUTPUT_EXTENSION}
+				)
+	add_library (webrtcextra STATIC ${OBJS})	
+	set_target_properties(webrtcextra PROPERTIES LINKER_LANGUAGE CXX)
+endif()
+
+
+add_lib(WebRTCServer "${CMAKE_SOURCE_DIR}/source" " "  SHARED)
 
 if (WIN32)
-  target_compile_definitions(WebRTCServer PRIVATE -DNOMINMAX -DWEBRTC_WIN)
+  target_compile_definitions(WebRTCServer PRIVATE -DNOMINMAX -DWEBRTC_WIN )
 else()
   target_compile_definitions(WebRTCServer PRIVATE -DWEBRTC_POSIX -D_GLIBCXX_USE_CXX11_ABI=0) # -fno-rtti)
 endif()
@@ -228,21 +234,19 @@ include_directories(WebRTCServer ${WEBRTC_INCLUDE_DIRS} )
 
 #target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
 
-target_include_directories(WebRTCServer PRIVATE ${BoringSSL_DIR})
-
 if (WIN32)
-target_include_directories(WebRTCServer PRIVATE ${Libyuv_INCLUDEDIR})
  #target_link_libraries(WebRTCServer ${Libyuv_LIBRARIES})
- set_target_properties(jsoncpp_lib_static PROPERTIES
-	  MAP_IMPORTED_CONFIG_MINSIZEREL Release
-	  MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
-	  )
+ # set_target_properties(jsoncpp_lib_static PROPERTIES
+	  # MAP_IMPORTED_CONFIG_MINSIZEREL Release
+	  # MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+	  # )
 	set_target_properties(webrtc PROPERTIES
 	  MAP_IMPORTED_CONFIG_MINSIZEREL Release
 	  MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 	  )
-  target_link_libraries(WebRTCServer jsoncpp_lib_static)
-  target_link_libraries(WebRTCServer webrtc)
+  # target_link_libraries(WebRTCServer jsoncpp_lib_static)
+  include(${LIBWEBRTC_USE_FILE})
+  target_link_libraries(WebRTCServer webrtc webrtcextra)
   message(STATUS "Test if it works with windows")
   target_link_libraries(WebRTCServer ws2_32 wsock32 winmm dmoguids Secur32 msdmo wmcodecdspuuid amstrmid crypt32 iphlpapi secur32 Strmiids)
   
@@ -278,6 +282,9 @@ SET_TARGET_PROPERTIES( WebRTCServer PROPERTIES OUTPUT_NAME WebRTCServer
 	  )
 	set_target_properties(WebRTCServer PROPERTIES INTERFACE_LINK_LIBRARIES "")
 	set_target_properties(WebRTCServer PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES_DEBUG "")
+
+add_subdirectory(executable)
+
 	
 	install(DIRECTORY "${CMAKE_SOURCE_DIR}/source/header/" DESTINATION include
 			COMPONENT sources

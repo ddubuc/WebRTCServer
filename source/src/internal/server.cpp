@@ -1,8 +1,10 @@
 #include <iostream>
 
 #include <openssl/ssl.h>
+#include <openssl/base.h>
 
-#include <webrtc/base/ssladapter.h>
+
+#include <rtc_base/ssladapter.h>
 #include "internal/server.h"
 
 using websocketpp::lib::placeholders::_1;
@@ -21,23 +23,21 @@ enum tls_mode {
     MOZILLA_INTERMEDIATE = 1,
     MOZILLA_MODERN = 2
 };
-static std::string _basename;
 
-context_ptr on_tls_init(tls_mode mode, websocketpp::connection_hdl hdl) {
+context_ptr on_tls_init(tls_mode mode, std::string basename, websocketpp::connection_hdl hdl) {
 
     namespace asio = websocketpp::lib::asio;
-	std::string & basename = _basename;
 	
-    std::cout << "on_tls_init called with hdl: " << hdl.lock().get() << std::endl;
-    std::cout << "using TLS mode: " << (mode == MOZILLA_MODERN ? "Mozilla Modern" : "Mozilla Intermediate") << std::endl;
-	std::cout << "Pem file : " << basename << ".crt" << std::endl;
-	std::cout << "create asio context shared ptr" << std::endl;
+    RTC_LOG(LS_INFO) << "on_tls_init called with hdl: " << hdl.lock().get();
+    RTC_LOG(LS_INFO) << "using TLS mode: " << (mode == MOZILLA_MODERN ? "Mozilla Modern" : "Mozilla Intermediate");
+	RTC_LOG(LS_INFO) << "Pem file : " << basename << ".crt";
+	RTC_LOG(LS_INFO) << "create asio context shared ptr";
 	
     context_ptr ctx = websocketpp::lib::make_shared<asio::ssl::context>(asio::ssl::context::sslv23);
 
     try {
         if (mode == MOZILLA_MODERN) {
-			std::cout << "Set options MODERN" << std::endl;
+			RTC_LOG(LS_INFO) << "Set options MODERN";
             // Modern disables TLSv1
             ctx->set_options(asio::ssl::context::default_workarounds |
                              asio::ssl::context::no_sslv2 |
@@ -45,21 +45,21 @@ context_ptr on_tls_init(tls_mode mode, websocketpp::connection_hdl hdl) {
                              asio::ssl::context::no_tlsv1 |
                              asio::ssl::context::single_dh_use);
         } else {
-			std::cout << "Set options INTERMEDIATE" << std::endl;
+			RTC_LOG(LS_INFO) << "Set options INTERMEDIATE";
 
             ctx->set_options(asio::ssl::context::default_workarounds |
                              asio::ssl::context::no_sslv2 |
                              asio::ssl::context::no_sslv3 |
                              asio::ssl::context::single_dh_use);
         }
-		std::cout << "Set callback fort password" << std::endl;
+		RTC_LOG(LS_INFO) << "Set callback fort password";
 
         ctx->set_password_callback(bind(&get_password));
 
-		std::cout << "Set perm crt : " << basename << std::endl;
+		RTC_LOG(LS_INFO) << "Set perm crt : " << basename;
         ctx->use_certificate_chain_file(basename + ".crt");
 
-		std::cout << "Set perm key" << std::endl;
+		RTC_LOG(LS_INFO) << "Set perm key";
         ctx->use_private_key_file(basename + ".key", asio::ssl::context::pem);
         
         // Example method of generating this file:
@@ -76,16 +76,16 @@ context_ptr on_tls_init(tls_mode mode, websocketpp::connection_hdl hdl) {
             ciphers = "ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA";
         }
 
-		std::cout << "Set SSL_CTX_set_cipher" << std::endl;
+		RTC_LOG(LS_INFO) << "Set SSL_CTX_set_cipher";
 
         if (SSL_CTX_set_cipher_list(ctx->native_handle() , ciphers.c_str()) != 1) {
-            std::cout << "Error setting cipher list" << std::endl;
+            RTC_LOG(LS_INFO) << "Error setting cipher list";
         }
     } catch (std::exception& e) {
-        std::cout << "Exception: " << e.what() << std::endl;
+        RTC_LOG(LS_INFO) << "Exception: " << e.what();
     }
 
-    std::cout << "ssl init end." << std::endl;
+    RTC_LOG(LS_INFO) << "ssl init end.";
     return ctx;
 }
 
@@ -97,21 +97,18 @@ WebsocketServer* ServerInit(std::function<void(WebsocketServer*, websocketpp::co
 ) {
 
   // Create a server endpoint
-  auto websocket_server = new WebsocketServer;
+  auto websocket_server = new WebsocketServer(basename);
 
-  // Initialize ASIO
-  websocket_server->init_asio();
-  _basename = basename;
-  std::cout << "Certificats path " << _basename << " " << basename << std::endl;
+  RTC_LOG(LS_INFO) << "Certificats path " << basename;
   // Register our message handler
-  websocket_server->set_message_handler(bind(msg_callback,websocket_server,::_1,::_2));
-  websocket_server->set_http_handler(bind(con_callback,websocket_server,::_1));
-  websocket_server->set_open_handler(bind(open_callback,websocket_server,::_1));
-  websocket_server->set_close_handler(bind(cls_callback,websocket_server,::_1));
-//  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_INTERMEDIATE,::_1));
-  websocket_server->set_reuse_addr(true);
-
+  websocket_server->onMessageHandler(msg_callback);
+  websocket_server->onConnectionHandler(con_callback);
+  websocket_server->onOpenHandler(open_callback);
+  websocket_server->onCloseHandler(cls_callback);
+  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_MODERN, basename, ::_1));
   
+
+  websocket_server->set_access_channels(websocketpp::log::alevel::none);
   // Start the ASIO io_service run loop
   // DO NOT websocket_server.poll(); here!! becasu it is block.
 

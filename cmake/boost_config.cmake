@@ -19,12 +19,12 @@ endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 if(WIN32)
   add_definitions(-DBOOST_USE_WINAPI_VERSION=0x601)
 endif(WIN32)
-
+set(Boost_DEBUG ON)
 set(Boost_USE_STATIC_LIBS ON)# only find static libs
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+find_package(Boost 1.66.0 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 if(NOT ${Boost_FOUND})
   message(FATAL_ERROR "failed to find Boost library (compatible with version 1.62.0)")
 endif(NOT ${Boost_FOUND})

@@ -1,6 +1,5 @@
 #include "internal/renderer.h"
 
-//#include "internal/opencvrenderer.h"
 
 RenderMode::RenderMode()
   : onAir(false), isKaicho(false), useEye(false), useMustache(false)

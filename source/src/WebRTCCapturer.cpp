@@ -1,5 +1,5 @@
 #include "WebRTCCapturer.h"
-#include <webrtc/api/peerconnectioninterface.h>
+#include <api/peerconnectioninterface.h>
 #include "internal/ConnectionData.h"
 #include "internal/WebSocketHandler.h"
 #include "internal/server.h"
@@ -32,38 +32,28 @@ int WebRTCCapturer::startWebRTCServer()
 		// mapping between socket connection and peer connection.
 		std::unordered_map<void*, std::shared_ptr<ConnectionData>> connections;
 
-		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory
-			= webrtc::CreatePeerConnectionFactory();
-
 		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> l_stack;
 		l_stack.reset(static_cast<core::queue::ConcurrentQueue<cv::Mat> *>(stack.get()), [](core::queue::ConcurrentQueue<cv::Mat> * ptr)
 		{
 
 		});
+
 		WebsocketServer * _ws = static_cast<WebsocketServer *>(ws);
 		{
 			std::lock_guard<std::mutex> lock(safe_quard);
 			
 			std::stringstream base_cert;
 			base_cert << this->working_dir;
-			if (!base_cert.str().empty())
-			{
-#ifdef WIN32
-				base_cert << "\\";
-#else
-				base_cert << "/";
-#endif /* WIN32 */
-			}
-			base_cert << "mylaptop";
+
 			std::shared_ptr<ConnectionData> empty;
 			std::function<void(std::shared_ptr<ConnectionData>)> func = &emptyCall;
 			_ws = ServerInit(
 				// on http = on connection
 				OnConnectHandler(),
-				OnOpenReceiverHandler(connections, l_stack),
-				OnCloseHandler(connections),
+				OnOpenReceiverHandler( l_stack),
+				OnCloseReceiverHandler(),
 				// on message
-				OnMessageReceiverHandler(connections),
+				OnMessageReceiverHandler(),
 				base_cert.str());
 			ws = _ws;
 
@@ -73,7 +63,7 @@ int WebRTCCapturer::startWebRTCServer()
 			// Start the server accept loop
 			_ws->start_accept();
 		}
-		LOG(INFO) << "run server" << port;
+		RTC_LOG(INFO) << "run server" << port;
 		_ws->run();
 		{
 			std::lock_guard<std::mutex> lock(safe_quard);
