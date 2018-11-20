@@ -48,16 +48,15 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderH
 	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
 	{
 		RTC_LOG(INFO) << "on_open ";
-
+		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
 
 		// create and set peer connection.
-		std::shared_ptr<void> shared_ptr = hdl.lock();
 		std::string peerId = "VideoSender";
 	
 
 		PeerConnectionManager::PeerConnectionObserver* peer_connection_observer = s->peer_connection_manager()->createClientOffer(peerId);
 
-		peer_connection_observer->SetOnIceCandidate([&, shared_ptr](const webrtc::IceCandidateInterface* candidate)
+		peer_connection_observer->SetOnIceCandidate([&, con](const webrtc::IceCandidateInterface* candidate)
 		{
 			std::string sdp;
 			candidate->ToString(&sdp);
@@ -72,7 +71,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderH
 
 			try
 			{
-				s->send(shared_ptr, writeJson, websocketpp::frame::opcode::text);
+				s->send(con, writeJson, websocketpp::frame::opcode::text);
 			}
 			catch (const websocketpp::lib::error_code& e)
 			{
@@ -110,13 +109,13 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceive
 {
 	auto func = [&, stack](WebsocketServer* s, websocketpp::connection_hdl hdl)
 	{
+		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
 		RTC_LOG(INFO) << "on_open ";
 		std::string peerId = "VideoReceiver";
 		PeerConnectionManager::PeerConnectionObserver* peer_connection_observer = s
 		                                                                          ->peer_connection_manager()->
 		                                                                          createClientOffer(peerId);
 
-		std::shared_ptr<void> shared_ptr = hdl.lock();
 		peer_connection_observer->setFuncOnAddStream(
 			[&, stack](PeerConnectionManager::PeerConnectionObserver* peerConnectionObserver,
 			    rtc::scoped_refptr<webrtc::MediaStreamInterface> stream)
@@ -129,7 +128,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceive
 			});
 
 
-		peer_connection_observer->SetOnIceCandidate([&, shared_ptr](const webrtc::IceCandidateInterface* candidate)
+		peer_connection_observer->SetOnIceCandidate([&, con](const webrtc::IceCandidateInterface* candidate)
 		{
 			std::string sdp;
 			candidate->ToString(&sdp);
@@ -142,7 +141,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceive
 			std::string writeJson = Json::StyledWriter().write(jmessage);
 			try
 			{
-				s->send(shared_ptr, writeJson, websocketpp::frame::opcode::text);
+				s->send(con, writeJson, websocketpp::frame::opcode::text);
 			}
 			catch (const websocketpp::lib::error_code& e)
 			{
@@ -162,8 +161,8 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 {
 	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
 	{
-		std::shared_ptr<void> shared_ptr = hdl.lock();
-		RTC_LOG(INFO) << "on_message called with hdl: " << shared_ptr.get()
+		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
+		RTC_LOG(INFO) << "on_message called with hdl: " 
 			<< " and message: " << msg->get_payload();
 		std::string peerId = "VideoReceiver";
 		PeerConnectionManager::PeerConnectionObserver* peer_connection_observer = s
@@ -184,7 +183,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 			std::string sdp = request["sdp"].asString();
 
 			s->peer_connection_manager()->createAnswerToClientOffer(peerId, request,
-			                                                        [&, shared_ptr](
+			                                                        [&, con](
 			                                                        webrtc::SessionDescriptionInterface* desc)
 			                                                        {
 				                                                        std::string sdp;
@@ -202,7 +201,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 				                                                        try
 				                                                        {
 					                                                        s->send(
-						                                                        shared_ptr,
+						                                                        con,
 						                                                        Json::StyledWriter().write(answer),
 						                                                        msg->get_opcode());
 				                                                        }
@@ -298,8 +297,8 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 {
 	auto func = [&, i_stack](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
 	{
-		std::shared_ptr<void> shared_ptr = hdl.lock();
-		RTC_LOG(INFO) << "on_message called with hdl: " << shared_ptr.get()
+		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
+		RTC_LOG(INFO) << "on_message called with hdl: "
 			<< " and message: " << msg->get_payload();
 		std::string peerId = "VideoSender";
 		PeerConnectionManager::PeerConnectionObserver* peer_connection_observer = s
@@ -386,7 +385,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 			{
 				std::string options;
 				s->peer_connection_manager()->createOffer(peerId, options,
-				                                          i_stack, [&, shared_ptr](webrtc::SessionDescriptionInterface* desc)
+				                                          i_stack, [&, con](webrtc::SessionDescriptionInterface* desc)
 				                                          {
 					                                          Json::Value offer;
 					                                          // Names used for a SessionDescription JSON object.
@@ -410,7 +409,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 					                                          {
 						                                          std::string offer_str = Json::StyledWriter().write(offer);
 						                                          RTC_LOG(LS_VERBOSE) << " sending offer..." << offer_str;
-						                                          s->send(shared_ptr, offer_str,
+						                                          s->send(con, offer_str,
 						                                                  websocketpp::frame::opcode::value::TEXT);
 					                                          }
 					                                          catch (const websocketpp::lib::error_code& e)
