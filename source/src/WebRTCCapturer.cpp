@@ -53,13 +53,15 @@ int WebRTCCapturer::startWebRTCServer()
 
 			// Start the server accept loop
 			_ws->start_accept();
+
+			_ws->stop_listening();
 		}
+		
 		RTC_LOG(INFO) << "run server" << port;
 		_ws->run();
 		{
 			std::lock_guard<std::mutex> lock(safe_quard);
-			std::error_code er;
-			_ws->stop_listening(er);
+		
 		
 			delete _ws;
 			_ws = nullptr;

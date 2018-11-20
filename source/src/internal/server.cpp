@@ -105,11 +105,11 @@ WebsocketServer* ServerInit(std::function<void(WebsocketServer*, websocketpp::co
   websocket_server->onConnectionHandler(con_callback);
   websocket_server->onOpenHandler(open_callback);
   websocket_server->onCloseHandler(cls_callback);
-  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_MODERN, basename, ::_1));
+  websocket_server->set_tls_init_handler(bind(&on_tls_init,MOZILLA_INTERMEDIATE, basename, ::_1));
   
-
-  websocket_server->set_access_channels(websocketpp::log::alevel::none);
-  // Start the ASIO io_service run loop
+  websocket_server->clear_access_channels(websocketpp::log::alevel::all); 
+  //websocket_server->set_access_channels(websocketpp::log::alevel::all);
+//
   // DO NOT websocket_server.poll(); here!! becasu it is block.
 
   return websocket_server;

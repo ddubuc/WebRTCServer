@@ -35,7 +35,7 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseSender
 		std::string peerId = "VideoSender";
 		
 		s->peer_connection_manager()->hangUp(peerId);
-
+		
 	};
 
 	return func;

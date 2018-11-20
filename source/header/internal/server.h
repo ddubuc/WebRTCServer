@@ -38,6 +38,8 @@ public:
 
 	~WebsocketServer()
 	{
+		std::lock_guard<std::mutex> lock(locker);
+
 		peerConnectionManager.reset();
 	}
 
@@ -49,31 +51,52 @@ public:
 	void onConnectionHandler(std::function<void(WebsocketServer*, websocketpp::connection_hdl)> handler)
 	{
 		on_connection = handler;
-		this->set_http_handler([this]( websocketpp::connection_hdl hdl) { on_connection(this, hdl); });
+		this->set_http_handler([this]( websocketpp::connection_hdl hdl)
+							   {
+								   std::lock_guard<std::mutex> lock(locker);
+										
+								   on_connection(this, hdl);
+							   });
 	}
 
 
 	void onOpenHandler(std::function<void(WebsocketServer*, websocketpp::connection_hdl)> openHandler)
 	{
 		on_open = openHandler;
-		this->set_open_handler([this]( websocketpp::connection_hdl hdl) { on_open(this, hdl); });
+		this->set_open_handler([this]( websocketpp::connection_hdl hdl)
+							   {
+								   std::lock_guard<std::mutex> lock(locker);
+								   on_open(this, hdl);
+							   });
 	}
 
 	void onCloseHandler(std::function<void(WebsocketServer*, websocketpp::connection_hdl)> handler)
 	{
 		on_close = handler;
-		this->set_close_handler([this]( websocketpp::connection_hdl hdl) { on_close(this, hdl); });
+		this->set_close_handler([this]( websocketpp::connection_hdl hdl)
+								{
+									std::lock_guard<std::mutex> lock(locker);
+									on_close(this, hdl);
+								});
 	}
 
 	
 	void onMessageHandler(std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> i_on_message)
 	{
+		std::lock_guard<std::mutex> lock(locker);
+
 		on_message = i_on_message;
-		this->set_message_handler([this]( websocketpp::connection_hdl hdl, message_ptr message) { on_message(this, hdl, message); });
+		this->set_message_handler([this]( websocketpp::connection_hdl hdl, message_ptr message)
+								  {
+									  std::lock_guard<std::mutex> lock(locker);
+									  
+									  on_message(this, hdl, message);
+								  });
 	}
 
 protected:
 	std::shared_ptr<PeerConnectionManager> peerConnectionManager;
+	std::mutex locker;
 };
 
 WebsocketServer* ServerInit(std::function<void(WebsocketServer*, websocketpp::connection_hdl)> con_callback,

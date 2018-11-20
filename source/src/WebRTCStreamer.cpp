@@ -77,6 +77,9 @@ int WebRTCStreamer::startWebRTCServer()
 
 			// Start the server accept loop
 			_ws->start_accept();
+
+			// std::error_code er;
+			// _ws->stop_listening(er);
 		} // safe lock guard
 
 		RTC_LOG(INFO) << "run server " << port;
