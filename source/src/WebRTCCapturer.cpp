@@ -31,14 +31,14 @@ int WebRTCCapturer::startWebRTCServer()
 
 		});
 
-		WebsocketServer * _ws = static_cast<WebsocketServer *>(ws);
+		RTCWebScoketServer * _ws = static_cast<RTCWebScoketServer *>(ws);
 		{
 			std::lock_guard<std::mutex> lock(safe_quard);
 			
 			std::stringstream base_cert;
 			base_cert << this->working_dir;
 
-			_ws = ServerInit(
+			_ws = RTCWebScoketServerInit(
 				// on http = on connection
 				OnConnectHandler(),
 				OnOpenReceiverHandler( l_stack),
@@ -54,18 +54,24 @@ int WebRTCCapturer::startWebRTCServer()
 			// Start the server accept loop
 			_ws->start_accept();
 
-			_ws->stop_listening();
 		}
 		
 		RTC_LOG(INFO) << "run server" << port;
-		_ws->run();
+		try
 		{
-			std::lock_guard<std::mutex> lock(safe_quard);
+			_ws->run();
 		
-		
-			delete _ws;
-			_ws = nullptr;
-			ws = nullptr;
+			{
+				std::lock_guard<std::mutex> lock(safe_quard);
+				_ws->stop();
+
+				delete _ws;
+				_ws = nullptr;
+				ws = nullptr;
+			}
+
+		} catch(websocketpp::exception const &e) {
+			std::cout << "Fail to init connection" << std::endl;
 		}
 	});
 
@@ -84,11 +90,11 @@ int WebRTCCapturer::stopWebRTCServer()
 	{
 		std::lock_guard<std::mutex> lock(safe_quard);
 
-		if (ws != nullptr && !static_cast<WebsocketServer *>(ws)->stopped())
+		if (ws != nullptr && !static_cast<RTCWebScoketServer *>(ws)->stopped())
 			canStop = true;
 	}
 	if (canStop)
-		static_cast<WebsocketServer *>(ws)->stop();
+		static_cast<RTCWebScoketServer *>(ws)->stop();
 
 	if (webRTC_task && webRTC_task->joinable())
 		webRTC_task->join();
@@ -110,7 +116,7 @@ cv::Mat WebRTCCapturer::Capture()
 		{
 			
 		});
-		while (!static_cast<WebsocketServer *>(ws)->stopped())
+		while (!static_cast<RTCWebScoketServer *>(ws)->stopped())
 		{
 			if (!l_stack->trypop_until(ret, 300))
 			{

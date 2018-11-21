@@ -43,7 +43,7 @@
 //		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory
 //			= webrtc::CreatePeerConnectionFactory();
 //		int port = 9001;
-//		WebsocketServer* ws = ServerInit(
+//		RTCWebScoketServer* ws = RTCWebScoketServerInit(
 //		                                 // on http = on connection
 //		                                 OnConnectHandler(),
 //		                                 OnOpenReceiverHandler(connections, stack),
@@ -68,7 +68,7 @@
 //		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory
 //			= webrtc::CreatePeerConnectionFactory();
 //		int port = 9002;
-//		WebsocketServer* ws2 = ServerInit(
+//		RTCWebScoketServer* ws2 = RTCWebScoketServerInit(
 //					// on http = on connection
 //		                                  OnConnectHandler(),
 //		                                  OnOpenSenderHandler(connectionsRCV),
@@ -109,7 +109,7 @@ extern "C"
 	{
 		rtc::InitializeSSL();
 
-		rtc::LogMessage::LogToDebug(rtc::LS_INFO);
+		rtc::LogMessage::LogToDebug(rtc::LS_VERBOSE);
 
 	}
 

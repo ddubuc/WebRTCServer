@@ -51,7 +51,7 @@ int WebRTCStreamer::startWebRTCServer()
 		std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> l_stack;
 		
 
-		WebsocketServer* _ws = static_cast<WebsocketServer *>(ws);
+		RTCWebScoketServer* _ws = static_cast<RTCWebScoketServer *>(ws);
 		{
 			std::lock_guard<std::mutex> lock(safe_quard);
 			l_stack.reset(static_cast<core::queue::ConcurrentQueue<cv::Mat> *>(stack.get()), [] (core::queue::ConcurrentQueue<cv::Mat> *) {});
@@ -59,7 +59,7 @@ int WebRTCStreamer::startWebRTCServer()
 			std::stringstream base_cert;
 			base_cert << this->working_dir;
 			
-			_ws = ServerInit(// on http = on connection
+			_ws = RTCWebScoketServerInit(// on http = on connection
 				OnConnectHandler(),
 				OnOpenSenderHandler(),
 				//on_close
@@ -83,15 +83,21 @@ int WebRTCStreamer::startWebRTCServer()
 		} // safe lock guard
 
 		RTC_LOG(INFO) << "run server " << port;
-		_ws->run();
+		try
 		{
-			std::lock_guard<std::mutex> lock(safe_quard);
-			std::error_code er;
-			_ws->stop_listening(er);
-			delete _ws;
-			_ws = nullptr;
-			ws = nullptr;
-			
+			_ws->run();
+		
+			{
+				std::lock_guard<std::mutex> lock(safe_quard);
+				_ws->stop();
+
+				delete _ws;
+				_ws = nullptr;
+				ws = nullptr;
+			}
+
+		} catch(websocketpp::exception const &e) {
+			std::cout << "Fail to init connection" << std::endl;
 		}
 	});
 
@@ -118,11 +124,11 @@ int WebRTCStreamer::stopWebRTCServer()
 	{
 		std::lock_guard<std::mutex> lock(safe_quard);
 
-		if (ws != nullptr && !static_cast<WebsocketServer *>(ws)->stopped())
+		if (ws != nullptr && !static_cast<RTCWebScoketServer *>(ws)->stopped())
 			canStop = true;
 	}
 	if (canStop)
-		static_cast<WebsocketServer *>(ws)->stop();
+		static_cast<RTCWebScoketServer *>(ws)->stop();
 
 	if (webRTC_task && webRTC_task->joinable())
 	{

@@ -1,11 +1,11 @@
 #include "internal/WebSocketHandler.h"
 #include "internal/videorenderer.h"
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnConnectHandler()
+std::function<void(RTCWebScoketServer*, websocketpp::connection_hdl)> OnConnectHandler()
 {
-	auto func = [](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [](RTCWebScoketServer* s, websocketpp::connection_hdl hdl)
 	{
-		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
+		RTCWebScoketServer::connection_ptr con = s->get_con_from_hdl(hdl);
 
 		con->set_body("Hello World!");
 		con->set_status(websocketpp::http::status_code::ok);
@@ -14,9 +14,9 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnConnectHand
 	return func;
 }
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseReceiverHandler()
+std::function<void(RTCWebScoketServer*, websocketpp::connection_hdl)> OnCloseReceiverHandler()
 {
-	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [&](RTCWebScoketServer* s, websocketpp::connection_hdl hdl)
 	{
 		RTC_LOG(INFO) << "on_close ";
 		std::string peerId = "VideoReceiver";
@@ -27,9 +27,9 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseReceiv
 	return func;
 }
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseSenderHandler()
+std::function<void(RTCWebScoketServer*, websocketpp::connection_hdl)> OnCloseSenderHandler()
 {
-	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [&](RTCWebScoketServer* s, websocketpp::connection_hdl hdl)
 	{
 		RTC_LOG(INFO) << "on_close ";
 		std::string peerId = "VideoSender";
@@ -43,17 +43,17 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnCloseSender
 
 
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenSenderHandler()
+std::function<void(RTCWebScoketServer*, websocketpp::connection_hdl)> OnOpenSenderHandler()
 {
-	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [&](RTCWebScoketServer* s, websocketpp::connection_hdl hdl)
 	{
 		RTC_LOG(INFO) << "on_open ";
-		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
+		RTCWebScoketServer::connection_ptr con = s->get_con_from_hdl(hdl);
 
 		// create and set peer connection.
 		std::string peerId = "VideoSender";
 	
-
+		if (!s->peer_connection_manager()) return;
 		PeerConnectionManager::PeerConnectionObserver* peer_connection_observer = s->peer_connection_manager()->createClientOffer(peerId);
 
 		peer_connection_observer->SetOnIceCandidate([&, con](const webrtc::IceCandidateInterface* candidate)
@@ -105,11 +105,11 @@ inline void ProcessMessage()
 	}
 }
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceiverHandler(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> stack)
+std::function<void(RTCWebScoketServer*, websocketpp::connection_hdl)> OnOpenReceiverHandler(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> stack)
 {
-	auto func = [&, stack](WebsocketServer* s, websocketpp::connection_hdl hdl)
+	auto func = [&, stack](RTCWebScoketServer* s, websocketpp::connection_hdl hdl)
 	{
-		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
+		RTCWebScoketServer::connection_ptr con = s->get_con_from_hdl(hdl);
 		RTC_LOG(INFO) << "on_open ";
 		std::string peerId = "VideoReceiver";
 		PeerConnectionManager::PeerConnectionObserver* peer_connection_observer = s
@@ -157,11 +157,11 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl)> OnOpenReceive
 }
 
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageReceiverHandler()
+std::function<void(RTCWebScoketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageReceiverHandler()
 {
-	auto func = [&](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
+	auto func = [&](RTCWebScoketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
 	{
-		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
+		RTCWebScoketServer::connection_ptr con = s->get_con_from_hdl(hdl);
 		RTC_LOG(INFO) << "on_message called with hdl: " 
 			<< " and message: " << msg->get_payload();
 		std::string peerId = "VideoReceiver";
@@ -293,11 +293,11 @@ std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> 
 	return func;
 }
 
-std::function<void(WebsocketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageSenderHandler(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> i_stack)
+std::function<void(RTCWebScoketServer*, websocketpp::connection_hdl, message_ptr)> OnMessageSenderHandler(std::shared_ptr<core::queue::ConcurrentQueue<cv::Mat>> i_stack)
 {
-	auto func = [&, i_stack](WebsocketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
+	auto func = [&, i_stack](RTCWebScoketServer* s, websocketpp::connection_hdl hdl, message_ptr msg)
 	{
-		WebsocketServer::connection_ptr con = s->get_con_from_hdl(hdl);
+		RTCWebScoketServer::connection_ptr con = s->get_con_from_hdl(hdl);
 		RTC_LOG(INFO) << "on_message called with hdl: "
 			<< " and message: " << msg->get_payload();
 		std::string peerId = "VideoSender";
